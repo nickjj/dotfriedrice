@@ -22,7 +22,7 @@
     {
       "type": "gpu",
       "key": "├─ ",
-      "format": "{name} ({dedicated-total})",
+      "format": "{name}{?dedicated-total} ({dedicated-total}){?}",
       "driverSpecific": true,
       "keyColor": "green"
     },
