@@ -1129,7 +1129,7 @@ and copy over new lines, remove unused lines or update existing defaults.
 If you want to proceed anyways you can run: touch ${real_file}
 
 The above will update your config's mtime, but be warned this could allow the
-install script to run in unintended ways with missing configuration values.
+dotfriedrice script to run in unintended ways with missing configuration values.
 
 EOF
 
@@ -2089,7 +2089,7 @@ set_theme() {
     active_theme="$(basename "${active_theme##*/}")"
   fi
 
-  # This is when a user runs the install script.
+  # This is when a user runs the dotfriedrice script.
   if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # We don't want to mess with their current theme, but we make sure to
     # check if there's an active theme, if not then it must be the first run.

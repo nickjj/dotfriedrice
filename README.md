@@ -243,8 +243,8 @@ Here's a few handy commands, you can run `./dotfriedrice --help` to see all of t
   - The same as above but skip installing or updating packages
   - Helps regenerate symlinks, configs and everything else without modifying packages
 - `./dotfriedrice pull`
-  - Pulls in the latest remote commits but doesn't run the install script
-  - Lets you review any changes locally before the install script runs
+  - Pulls in the latest remote commits but doesn't install anything
+  - Lets you review any changes locally before you install anything
 - `./dotfriedrice diff-config`
   - Compare your local `dotfriedrice-config` to the local `dotfriedrice-config.example`
   - Helps keep your git ignored `dotfriedrice-config` in sync with new options
