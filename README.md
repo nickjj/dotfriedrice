@@ -89,6 +89,7 @@ packages, standalone scripts, programming languages and more.
   - [How to add custom themes?](#how-to-add-custom-themes)
   - [How to install Arch Linux?](#how-to-install-arch-linux)
   - [How do I get started with the desktop environment?](#how-do-i-get-started-with-the-desktop-environment)
+  - [How much resources does the desktop environment use?](#how-much-resources-does-the-desktop-environment-use)
   - [Where is the original Vim config?](#where-is-the-original-vim-config)
 - [Feedback and Code Contributions](#-feedback-and-code-contributions)
 - [Donations](#-donations)
@@ -517,6 +518,29 @@ After logging in you'll be greeted with an empty desktop and a top bar:
 - Open a terminal and run `dt` to switch to the DotFriedRice repo and open it in Neovim
   - Explore `.config/niri/config.kdl` for a complete list of key binds
 - Have fun with *your* new system!
+
+### How much resources does the desktop environment use?
+
+Very little! DotFriedRice works great on high end and low end machines.
+
+On a fresh boot, the total system memory used is about 1 GB. GPU memory will
+vary depending on which GPU vendor you use but it's only a few hundred megs
+with niri and Walker loaded.
+
+To put things into perspective my main desktop was built from parts in 2014. I
+have an i5-4460 quad core CPU at 3.4ghz with 16 GB of RAM and an SSD. I used a
+GeForce 750 Ti (2 GB) for a long time and things were mostly ok. I eventually
+switched to an AMD RX 480 (8 GB) GPU because I noticed with 2 GB on an NVIDIA
+card I'd sometimes run out of VRAM while recording videos with a lot of things
+open.
+
+Long story short, the system blazes. After switching from Windows 10 it felt
+like I got a hardware upgrade. This is thanks to the Linux kernel, Arch Linux,
+niri and generally people caring about performance!
+
+I spend all day working on this machine developing web apps, running Docker
+containers, Virtual Machines, recording and editing videos, etc.. I don't feel
+held back with performance, even with this 2014 computer!
 
 ### Where is the original Vim config?
 
