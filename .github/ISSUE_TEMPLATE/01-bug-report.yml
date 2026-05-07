@@ -13,7 +13,7 @@ body:
     id: "system"
     attributes:
       label: "System information"
-      description: "You can run `./dotfriedrice --debug` to obtain information about
+      description: "You can run `dotfriedrice --debug` to obtain information about
         your environment, if this applies please include it"
     validations:
       required: false

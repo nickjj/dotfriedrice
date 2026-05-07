@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install DotFriedRice, run: ./dotfriedrice --help for help and examples.
+# Install DotFriedRice, run: dotfriedrice --help for help and examples.
 
 set -o errexit
 
@@ -7,7 +7,7 @@ set -o errexit
 DOTFRIEDRICE_FIRST_RUN="0"
 DOTFRIEDRICE_PATH_CONFIGURED="${DOTFRIEDRICE_PATH:-}"
 [ -z "${DOTFRIEDRICE_PATH}" ] && DOTFRIEDRICE_FIRST_RUN="1"
-DOTFRIEDRICE_PATH="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+DOTFRIEDRICE_PATH="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 # shellcheck disable=SC1091
 . "${DOTFRIEDRICE_PATH}/bootstrap"
@@ -1158,7 +1158,7 @@ update_dotfriedrice() {
   # This feels like a good default because it lets you check a branch out
   # locally and potentially merge into that without needing to change anything.
   local local_branch=
-  local_branch="$(git -C "${DOTFRIEDRICE_PATH}" branch --show-current)"
+  local_branch="$(git branch --show-current)"
 
   # This is explained a bit further down.
   local test_branch="${2:-}"
@@ -1178,27 +1178,27 @@ update_dotfriedrice() {
     local_branch="${test_branch}"
     DOTFRIEDRICE_BRANCH="${test_branch}"
 
-    git -C "${DOTFRIEDRICE_PATH}" fetch --quiet origin "${DOTFRIEDRICE_BRANCH}"
+    git fetch --quiet origin "${DOTFRIEDRICE_BRANCH}"
 
     # Create the branch locally if it doesn't exist. Quiet is skipped here
     # because showing that a new branch was created seems useful.
     if ! git show-ref --quiet --verify "refs/heads/${local_branch}"; then
-      git -C "${DOTFRIEDRICE_PATH}" checkout -b "${local_branch}" "origin/${DOTFRIEDRICE_BRANCH}"
+      git checkout -b "${local_branch}" "origin/${DOTFRIEDRICE_BRANCH}"
     fi
   else
     # If there's no custom branch passed in, we only need to fetch.
-    git -C "${DOTFRIEDRICE_PATH}" fetch --quiet origin "${DOTFRIEDRICE_BRANCH}"
+    git fetch --quiet origin "${DOTFRIEDRICE_BRANCH}"
   fi
 
   local new_commit_count=
-  new_commit_count="$(git -C "${DOTFRIEDRICE_PATH}" rev-list "${local_branch}..origin/${DOTFRIEDRICE_BRANCH}" --count)"
+  new_commit_count="$(git rev-list "${local_branch}..origin/${DOTFRIEDRICE_BRANCH}" --count)"
 
   if [ "${new_commit_count}" = "0" ]; then
     _skipping "Local '${local_branch}' has the latest commits from remote '${DOTFRIEDRICE_BRANCH}'"
   else
     # Let's merge the latest updates into the local branch.
-    git -C "${DOTFRIEDRICE_PATH}" checkout --quiet "${local_branch}"
-    git -C "${DOTFRIEDRICE_PATH}" merge "origin/${DOTFRIEDRICE_BRANCH}"
+    git checkout --quiet "${local_branch}"
+    git merge "origin/${DOTFRIEDRICE_BRANCH}"
 
     # Insurance to always make sure an dotfriedrice-config exists.
     cp -n "${DOTFRIEDRICE_PATH}/dotfriedrice-config.example" "${DOTFRIEDRICE_PATH}/dotfriedrice-config"
@@ -2373,76 +2373,76 @@ KEEPING UP TO DATE
 -------------------------------------------------------------------------------${C_RESET}
 
 ${C_WHITE}# Install everything based on the local copy of DotFriedRice.
-${C_GREEN}./dotfriedrice
+${C_GREEN}dotfriedrice
 
 ${C_WHITE}# The same as above but skip installing packages (useful for updating symlinks).
-${C_GREEN}./dotfriedrice --skip-system-packages | -S
+${C_GREEN}dotfriedrice --skip-system-packages | -S
 
 ${C_WHITE}# Pulls in the latest remote commits and merges them into your local branch,
 # if a BRANCH is supplied a new local branch will be created to be merged into
 # which is helpful for testing PRs without affecting your main branch.
 #
 # It defaults to the currently checked out branch if not supplied.
-${C_GREEN}./dotfriedrice pull ${C_CYAN}[BRANCH]
+${C_GREEN}dotfriedrice pull ${C_CYAN}[BRANCH]
 
 ${C_WHITE}# The same as pull but also runs dotfriedrice afterwards to install.
-${C_GREEN}./dotfriedrice update ${C_CYAN}[BRANCH]
+${C_GREEN}dotfriedrice update ${C_CYAN}[BRANCH]
 
 ${C_BLUE}-------------------------------------------------------------------------------
 WHAT'S DIFFERENT
 -------------------------------------------------------------------------------${C_RESET}
 
 ${C_WHITE}# Diff your dotfriedrice-config vs the local dotfriedrice-config.example.
-${C_GREEN}./dotfriedrice diff-config
+${C_GREEN}dotfriedrice diff-config
 
 ${C_WHITE}# The same as above but show the diff in side-by-side (split) mode.
-${C_GREEN}./dotfriedrice diff-config --side
+${C_GREEN}dotfriedrice diff-config --side
 
 ${C_WHITE}# Diff any local uncommited or committed changes vs the remote, defaults to "origin".
-${C_GREEN}./dotfriedrice diff ${C_CYAN}[TARGET]${C_RESET}
+${C_GREEN}dotfriedrice diff ${C_CYAN}[TARGET]${C_RESET}
 
 ${C_WHITE}# The same as above but show the diff in side-by-side (split) mode.
-${C_GREEN}./dotfriedrice diff --side
+${C_GREEN}dotfriedrice diff --side
 
 ${C_WHITE}# Compare your currently checked out branch to your local ${DOTFRIEDRICE_BRANCH} branch, this
 # could be helpful if you have a personalized branch and you pull updates into
 # ${DOTFRIEDRICE_BRANCH} and now you want to compare them locally.
-${C_GREEN}./dotfriedrice diff ${C_CYAN}${DOTFRIEDRICE_BRANCH}
+${C_GREEN}dotfriedrice diff ${C_CYAN}${DOTFRIEDRICE_BRANCH}
 
 ${C_WHITE}# Show all of your local files that are git ignored such as configs, history and scripts.
-${C_GREEN}./dotfriedrice local-files
+${C_GREEN}dotfriedrice local-files
 
 ${C_BLUE}-------------------------------------------------------------------------------
 WHAT'S NEW
 -------------------------------------------------------------------------------${C_RESET}
 
 ${C_WHITE}# Show new remote commits that do not exist locally, defaults to "..origin".
-${C_GREEN}./dotfriedrice new-commits ${C_CYAN}[TARGET]
+${C_GREEN}dotfriedrice new-commits ${C_CYAN}[TARGET]
 
 ${C_WHITE}# Show your local commits that don't exist in the remote.
-${C_GREEN}./dotfriedrice new-commits ${C_CYAN}origin..
+${C_GREEN}dotfriedrice new-commits ${C_CYAN}origin..
 
 ${C_WHITE}# The same as above except compare it to your local ${DOTFRIEDRICE_BRANCH} branch not remote.
-${C_GREEN}./dotfriedrice new-commits ${C_CYAN}..${DOTFRIEDRICE_BRANCH}
+${C_GREEN}dotfriedrice new-commits ${C_CYAN}..${DOTFRIEDRICE_BRANCH}
 
 ${C_WHITE}# Show your local commits that don't exist in the remote and new remote commits.
-${C_GREEN}./dotfriedrice new-commits ${C_CYAN}origin...
+${C_GREEN}dotfriedrice new-commits ${C_CYAN}origin...
 
 ${C_WHITE}# The same as above except compare it to your local ${DOTFRIEDRICE_BRANCH} branch not remote.
-${C_GREEN}./dotfriedrice new-commits ${C_CYAN}...${DOTFRIEDRICE_BRANCH}
+${C_GREEN}dotfriedrice new-commits ${C_CYAN}...${DOTFRIEDRICE_BRANCH}
 
 ${C_WHITE}# Show a list of commits on a remote, defaults to "origin".
-${C_GREEN}./dotfriedrice changelog ${C_CYAN}[TARGET]${C_RESET}
+${C_GREEN}dotfriedrice changelog ${C_CYAN}[TARGET]${C_RESET}
 
 ${C_BLUE}-------------------------------------------------------------------------------
 HELP
 -------------------------------------------------------------------------------${C_RESET}
 
 ${C_WHITE}# Show debug information that you can paste into an issue.
-${C_GREEN}./dotfriedrice debug
+${C_GREEN}dotfriedrice debug
 
 ${C_WHITE}# Show this help menu.
-${C_GREEN}./dotfriedrice --help
+${C_GREEN}dotfriedrice --help
 EOF
     exit
     ;;
@@ -2457,6 +2457,10 @@ EOF
 
 # Only run these when calling the script, not sourcing it.
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  # Execute everything in the context of this directory since it's possible to
+  # call dotfriedrice from anywhere.
+  cd "${DOTFRIEDRICE_PATH}"
+
   parse_args "${@}"
 
   verify_dotfriedrice_path

@@ -22,6 +22,7 @@ export DEFAULT_CONFIG_INSTALL=(
   "ln -fns \"\${DOTFRIEDRICE_PATH}/.config/zsh/.zshrc.local\" \"\${XDG_CONFIG_HOME}/zsh/.zshrc.local\""
   "ln -fns \"\${DOTFRIEDRICE_PATH}/.config/zsh/.zshrc\" \"\${XDG_CONFIG_HOME}/zsh/.zshrc\""
   "ln -fns \"\${DOTFRIEDRICE_PATH}/.local/bin/\"* \"\${HOME}/.local/bin/\""
+  "ln -fns \"\${DOTFRIEDRICE_PATH}/dotfriedrice\" \"\${HOME}/.local/bin/dotfriedrice\""
 )
 
 export DEFAULT_CONFIG_INSTALL_GUI_LINUX=(

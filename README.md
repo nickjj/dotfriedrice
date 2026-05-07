@@ -235,37 +235,37 @@ Once you've installed DotFriedRice you can run `cd "${DOTFRIEDRICE_PATH}"` to
 manage it moving forward. There's also the `dfr` alias to move into that
 directory and open it in Neovim.
 
-Here's a few handy commands, you can run `./dotfriedrice --help` to see all of them:
+Here's a few handy commands, you can run `dotfriedrice --help` to see all of them:
 
-- `./dotfriedrice`
+- `dotfriedrice`
   - Install everything based on your local copy of DotFriedRice (you can run this regularly)
   - Keeps your system up to date and apply local config changes
-- `./dotfriedrice --skip-system-packages | -S`
+- `dotfriedrice --skip-system-packages | -S`
   - The same as above but skip installing or updating packages
   - Helps regenerate symlinks, configs and everything else without modifying packages
-- `./dotfriedrice pull`
+- `dotfriedrice pull`
   - Pulls in the latest remote commits but doesn't install anything
   - Lets you review any changes locally before you install anything
-- `./dotfriedrice update`
+- `dotfriedrice update`
   - Pulls in the latest remote commits and installs everything
   - Shortcut to pull and install in 1 command
-- `./dotfriedrice diff-config`
+- `dotfriedrice diff-config`
   - Compare your local `dotfriedrice-config` to the local `dotfriedrice-config.example`
   - Helps keep your git ignored `dotfriedrice-config` in sync with new options
-- `./dotfriedrice diff`
+- `dotfriedrice diff`
   - Compare what you have locally vs the latest remote commits
-  - See what will change if you `./dotfriedrice pull` without modifying your git tree
-- `./dotfriedrice new-commits`
+  - See what will change if you `dotfriedrice pull` without modifying your git tree
+- `dotfriedrice new-commits`
   - Show new remote commits that do not exist locally
   - Present a quick list of what's available to pull locally
-- `./dotfriedrice changelog`
+- `dotfriedrice changelog`
   - Show all remote commits
   - Present a quick list of all commits to see what has changed over time
-- `./dotfriedrice local-files`
+- `dotfriedrice local-files`
   - Show all local git ignored files such as configs, history and scripts
   - Useful to see everything not committed and for optionally backing up those files
-    - Example: `./dotfriedrice local-files | xargs zip local-files.zip`
-- `./dotfriedrice debug`
+    - Example: `dotfriedrice local-files | xargs zip local-files.zip`
+- `dotfriedrice debug`
   - Show DotFriedRice environment and system information
   - Can be used to help report issues and check your system stats
 
@@ -328,7 +328,7 @@ services were delayed from starting by ~2 minutes.
 The [dotfriedrice-config](./dotfriedrice-config.example) lets you customize a
 few things but chances are you'll want to personalize more than what's there,
 such as various Neovim settings. Since this is a git repo you can always do a
-`./dotfriedrice pull` or `git pull` to get the most up to date code, but then
+`dotfriedrice pull` or `git pull` to get the most up to date code, but then
 you may find yourself clobbering over your changes.
 
 We have a few reasonable options without custom branches or forking:
