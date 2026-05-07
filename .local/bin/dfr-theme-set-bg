@@ -4,6 +4,7 @@
 # Examples:
 #   dfr-theme-set-bg --list          # Print wallpapers for active theme
 #   dfr-theme-set-bg --menu          # Pick from available wallpapers for active theme
+#   dfr-theme-set-bg --current       # Print the current wallpaper
 #   dfr-theme-set-bg --keep-current  # Useful when rebooting
 #   dfr-theme-set-bg FILE_NAME       # Rrovide a specific wallpaper
 #   dfr-theme-set-bg                 # Pick the next available wallpaper
@@ -13,6 +14,7 @@ set -o pipefail
 set -o nounset
 
 ARG="${1:-}"
+CURRENT_WALLPAPER=
 
 WALLPAPER_DIR="${XDG_CONFIG_HOME}/wallpaper"
 WALLPAPER_PATH="${WALLPAPER_DIR}/wallpaper.jpg"
@@ -45,17 +47,13 @@ fallback() {
   exit
 }
 
-if [ "${ARG}" == "--list" ]; then
-  eligible_wallpapers
-  exit
-elif [ "${ARG}" == "--menu" ]; then
-  walker --provider menus:wallpapers
-  exit
-elif [[ -z "${ARG}" || "${ARG}" == "--keep-current" ]]; then
+get_current_wallpaper() {
+  local current_wallpaper_path=
+
   # We only want to set this if there's an existing symlink.
   if [[ -L "${WALLPAPER_PATH}" && -e "${WALLPAPER_PATH}" ]]; then
-    CURRENT_WALLPAPER_PATH="$(readlink "${WALLPAPER_PATH}")"
-    CURRENT_WALLPAPER="$(basename "${CURRENT_WALLPAPER_PATH}")"
+    current_wallpaper_path="$(readlink "${WALLPAPER_PATH}")"
+    CURRENT_WALLPAPER="$(basename "${current_wallpaper_path}")"
   else
     # This happens in 1 of 2 cases:
     #   - This is the first time you've installed DotFriedRice
@@ -69,6 +67,20 @@ elif [[ -z "${ARG}" || "${ARG}" == "--keep-current" ]]; then
     # this out so it'll use the fallback.
     CURRENT_WALLPAPER="starry-night.jpg"
   fi
+}
+
+if [ "${ARG}" == "--list" ]; then
+  eligible_wallpapers
+  exit
+elif [ "${ARG}" == "--menu" ]; then
+  walker --provider menus:wallpapers
+  exit
+elif [ "${ARG}" = "--current" ]; then
+  get_current_wallpaper
+  echo "${CURRENT_WALLPAPER}"
+  exit
+elif [[ -z "${ARG}" || "${ARG}" == "--keep-current" ]]; then
+  get_current_wallpaper
 
   # Avoid setting the next wallpaper if we're keeping the current one. We don't
   # exit early so we can still fallback to a color if something went wrong.
