@@ -2209,7 +2209,10 @@ EOF
   # On the first run on a fresh Arch install, you'll be in tty1 directly and
   # font glyphs won't be supported, let's use the default config so things
   # don't look broken from the beginning.
-  if [ "${TERM}" == "linux" ]; then
+  #
+  # Also, on a first install within WSL 2, the font to allow glyphs isn't there
+  # until you take manual action. macOS already has a compatible font.
+  if [[ "${TERM}" == "linux" || ("${DOTFRIEDRICE_FIRST_RUN}" == "1" && "${OS_IN_WSL}" == "1") ]]; then
     fastfetch --config none
   else
     fastfetch
