@@ -2206,7 +2206,14 @@ $(nvim --version)
 ${C_BLUE}Fastfetch:${C_RESET}
 EOF
 
-  fastfetch
+  # On the first run on a fresh Arch install, you'll be in tty1 directly and
+  # font glyphs won't be supported, let's use the default config so things
+  # don't look broken from the beginning.
+  if [ "${TERM}" == "linux" ]; then
+    fastfetch --config none
+  else
+    fastfetch
+  fi
 }
 
 completed_message() {
