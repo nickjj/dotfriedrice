@@ -77,6 +77,12 @@
       "keyColor": "yellow"
     },
     {
+      "type": "colors",
+      "key": "├─ ",
+      "symbol": "square",
+      "keyColor": "yellow"
+    },
+    {
       "type": "terminal",
       "key": "├─ ",
       "keyColor": "yellow"
