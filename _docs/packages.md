@@ -66,7 +66,6 @@ If needed, these get automatically installed for you by DotFriedRice.
 | man-db (`man`)             | A utility for reading man pages                                                   |
 | man-pages                  | Linux man pages                                                                   |
 | mise                       | The front-end to your dev env                                                     |
-| ntfs-3g                    | NTFS filesystem driver and utilities                                              |
 | openbsd-netcat (`netcat`)  | TCP/IP swiss army knife (OpenBSD variant)                                         |
 | openssh                    | SSH protocol implementation for remote login, command execution and file transfer |
 | pwgen                      | Password generator for creating easily memorable passwords                        |
