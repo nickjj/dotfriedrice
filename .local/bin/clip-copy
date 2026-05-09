@@ -5,9 +5,14 @@
 #   echo "Hello world" | clip-copy
 #   clip-copy <<< "Hello world"
 #   clip-copy < myfile
+#
+# On Wayland with wl-copy you can copy sensitive information with a flag to
+# give clipboard managers a hint not to persist it, for example:
+#
+# echo "my-secret-password" | clip-copy --sensitive
 
 set -o errexit
 set -o pipefail
 set -o nounset
 
-wl-copy 2>/dev/null || pbcopy 2>/dev/null || xclip -sel clip
+wl-copy "${@}" 2>/dev/null || pbcopy 2>/dev/null || xclip -sel clip

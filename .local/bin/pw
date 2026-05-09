@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Generate a secure secret and have it copied to your clipboard.
+# Generate a secure secret and have it copied to your clipboard. If your platform
+# supports hiding it from clipboard managers, that will be used.
 
 set -o errexit
 set -o pipefail
 set -o nounset
 
-pwgen -sync "${1:-48}" -1 | clip-copy
+pwgen -sync "${1:-48}" -1 | clip-copy --sensitive
