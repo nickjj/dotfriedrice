@@ -979,6 +979,110 @@ detect_and_prepare_bluetooth() {
   fi
 }
 
+update_dotfriedrice() {
+  _info "UPDATE DOTFRIEDRICE"
+
+  if [ "${DOTFRIEDRICE_FIRST_RUN}" == "1" ]; then
+    _skipping "This is the first time you've run this script"
+    return
+  fi
+
+  if [[ "${PULL}" != "1" && "${PULL_UPDATE}" != "1" ]]; then
+    _skipping "Rerun with pull or update to get the latest changes"
+    return
+  fi
+
+  # This feels like a good default because it lets you check a branch out
+  # locally and potentially merge into that without needing to change anything.
+  local local_branch=
+  local_branch="$(git branch --show-current)"
+
+  # This is explained a bit further down.
+  local test_branch="${2:-}"
+
+  if [[ -z "${local_branch}" && -z "${test_branch}" ]]; then
+    _error "Are you in a detached state? Checkout a branch before pulling or updating, aborting!"
+  fi
+
+  # If a custom branch name was set, we're testing a branch which means
+  # we want both the remote + local branches to be the same to avoid merging
+  # into the currently checked out branch (likely master).
+  if [ -n "${test_branch}" ]; then
+    if ! git ls-remote --exit-code --heads origin "${test_branch}" 1>/dev/null; then
+      _error "Remote branch '${test_branch}' does not exist, aborting!"
+    fi
+
+    local_branch="${test_branch}"
+    DOTFRIEDRICE_BRANCH="${test_branch}"
+
+    git fetch --quiet origin "${DOTFRIEDRICE_BRANCH}"
+
+    # Create the branch locally if it doesn't exist. Quiet is skipped here
+    # because showing that a new branch was created seems useful.
+    if ! git show-ref --quiet --verify "refs/heads/${local_branch}"; then
+      git checkout -b "${local_branch}" "origin/${DOTFRIEDRICE_BRANCH}"
+    fi
+  else
+    # If there's no custom branch passed in, we only need to fetch.
+    git fetch --quiet origin "${DOTFRIEDRICE_BRANCH}"
+  fi
+
+  local new_commit_count=
+  new_commit_count="$(git rev-list "${local_branch}..origin/${DOTFRIEDRICE_BRANCH}" --count)"
+
+  if [ "${new_commit_count}" = "0" ]; then
+    _skipping "Local '${local_branch}' has the latest commits from remote '${DOTFRIEDRICE_BRANCH}'"
+  else
+    # Let's merge the latest updates into the local branch.
+    git checkout --quiet "${local_branch}"
+    git merge "origin/${DOTFRIEDRICE_BRANCH}"
+
+    # Insurance to always make sure an dotfriedrice-config exists.
+    cp -n "${DOTFRIEDRICE_PATH}/dotfriedrice-config.example" "${DOTFRIEDRICE_PATH}/dotfriedrice-config"
+
+    # Re-run this script because if an update happened, it's possible new
+    # configuration was introduced which means reading in their env vars.
+    exec "${0}" "${@}"
+  fi
+}
+
+compare_install_config() {
+  _info "COMPARE INSTALL CONFIG"
+
+  example_file="dotfriedrice-config.example"
+  real_file="dotfriedrice-config"
+
+  if [ "${example_file}" -nt "${real_file}" ]; then
+    DELTA_PAGER="cat" git diff --no-index dotfriedrice-config dotfriedrice-config.example
+
+    cat <<EOF
+
+---
+
+The above is a diff between your ${real_file} and the ${example_file}.
+Anything you see in green is in the updated ${example_file}.
+
+It's completely normal for you to see your custom changes here but the
+${example_file} file has a newer mtime (modified time) than your config
+which indicates it might have new updates for you to merge into your ${real_file}.
+
+This merge cannot be automated in a reasonable way so you'll want to eyeball it
+and copy over new lines, remove unused lines or update existing defaults.
+
+If you want to proceed anyways you can run: touch ${real_file}
+
+The above will update your config's mtime, but be warned this could allow the
+dotfriedrice script to run in unintended ways with missing configuration values.
+
+EOF
+
+    _error "There are potentially new updates to merge into your '${real_file}'"
+
+  else
+    _skipping "'${real_file}' is up to date"
+  fi
+}
+
 create_initial_dirs() {
   mkdir -p \
     "${HOME}/.local/bin" \
@@ -1027,6 +1131,62 @@ create_initial_dirs() {
       "${XDG_TEMPLATES_DIR}" \
       "${XDG_VIDEOS_DIR}"
   fi
+}
+
+ask_for_name() {
+  _info "ASKING FOR YOUR NAME"
+
+  local name=
+
+  if [ -n "${YOUR_NAME}" ]; then
+    _skipping "'${YOUR_NAME}' was retrieved from your install config"
+    return 0
+  fi
+
+  if name="$(git config user.name)"; then
+    _skipping "'${name}' was retrieved from your git config"
+  else
+    while true; do
+      printf "What is your full name (ie. Dade Murphy)? "
+      read -r name
+
+      if [[ ${name} =~ [^[:space:]]+ ]]; then
+        break
+      else
+        _error "Please enter at least your first name\n" ""
+      fi
+    done
+  fi
+
+  YOUR_NAME="${name}"
+}
+
+ask_for_email() {
+  _info "ASKING FOR YOUR EMAIL"
+
+  local email=
+
+  if [ -n "${YOUR_EMAIL}" ]; then
+    _skipping "'${YOUR_EMAIL}' was retrieved from your install config"
+    return 0
+  fi
+
+  if email="$(git config user.email)"; then
+    _skipping "'${email}' was retrieved from your git config"
+  else
+    while true; do
+      printf "What is your email address (ie. zerocool@example.com)? "
+      read -r email
+
+      if [[ ${email} =~ .+@.+ ]]; then
+        break
+      else
+        _error "Please enter a valid email address\n" ""
+      fi
+    done
+  fi
+
+  YOUR_EMAIL="${email}"
 }
 
 install_packages() {
@@ -1105,108 +1265,158 @@ EOF
   done
 }
 
-compare_install_config() {
-  _info "COMPARE INSTALL CONFIG"
+install_programming_languages() {
+  _info "INSTALL PROGRAMMING LANGUAGES"
 
-  example_file="dotfriedrice-config.example"
-  real_file="dotfriedrice-config"
+  declare -A mise_languages
 
-  if [ "${example_file}" -nt "${real_file}" ]; then
-    DELTA_PAGER="cat" git diff --no-index dotfriedrice-config dotfriedrice-config.example
+  # Merge both arrays.
+  for key in "${!MISE_LANGUAGES[@]}"; do
+    mise_languages["${key}"]="${MISE_LANGUAGES[${key}]}"
+  done
+  for key in "${!MISE_LANGUAGES_EXTRAS[@]}"; do
+    mise_languages["${key}"]="${MISE_LANGUAGES_EXTRAS[${key}]}"
+  done
 
+  if ((${#mise_languages[@]} == 0)); then
+    _skipping "No languages set"
+    return
+  fi
+
+  for key in "${!mise_languages[@]}"; do
+    [[ "${key}" = "0" || -z "${mise_languages[${key}]}" ]] && continue
+
+    local mise_shim_path="${XDG_DATA_HOME}/mise/shims"
+
+    printf "\n%bInstalling %b:%b\n\n" "${C_BLUE}" "${mise_languages["${key}"]}" "${C_RESET}"
+    if command -v "${mise_shim_path}/${key}" 1>/dev/null; then
+      _skipping "Already installed, run 'mise upgrade ${key} --bump' to upgrade"
+    else
+      mise use --global "${mise_languages[${key}]}"
+    fi
+
+    # Also install Yarn for Node.
+    if [ "${key}" = "node" ]; then
+      if ! "${mise_shim_path}/yarn" --version >/dev/null 2>&1; then
+        "${mise_shim_path}/npm" install --unsafe-perm=true --allow-root --global yarn
+      fi
+    fi
+  done
+}
+
+install_configs() {
+  local auto_confirm="${1:-"${CONFIG_INSTALL_AUTO_CONFIRM}"}"
+
+  _info "INSTALL CONFIGS"
+
+  local warning_count=0
+
+  local config_install=()
+  local config_install_gui_linux=()
+  local config_install_wsl=()
+  local config_install_arch=()
+
+  ((${#CONFIG_INSTALL[@]} > 0)) && config_install+=("${CONFIG_INSTALL[@]}")
+  ((${#CONFIG_INSTALL_EXTRAS[@]} > 0)) && config_install+=("${CONFIG_INSTALL_EXTRAS[@]}")
+
+  ((${#CONFIG_INSTALL_GUI_LINUX[@]} > 0)) && config_install_gui_linux+=("${CONFIG_INSTALL_GUI_LINUX[@]}")
+  ((${#CONFIG_INSTALL_GUI_LINUX_EXTRAS[@]} > 0)) && config_install_gui_linux+=("${CONFIG_INSTALL_GUI_LINUX_EXTRAS[@]}")
+
+  ((${#CONFIG_INSTALL_WSL[@]} > 0)) && config_install_wsl+=("${CONFIG_INSTALL_WSL[@]}")
+  ((${#CONFIG_INSTALL_WSL_EXTRAS[@]} > 0)) && config_install_wsl+=("${CONFIG_INSTALL_WSL_EXTRAS[@]}")
+
+  ((${#CONFIG_INSTALL_ARCH[@]} > 0)) && config_install_arch+=("${CONFIG_INSTALL_ARCH[@]}")
+  ((${#CONFIG_INSTALL_ARCH_EXTRAS[@]} > 0)) && config_install_arch+=("${CONFIG_INSTALL_ARCH_EXTRAS[@]}")
+
+  _config_install_display "Configs" "${config_install[@]}"
+
+  if [ "${GUI_ENABLED}" == "1" ]; then
+    sudo mkdir -p "/etc/systemd/system/systemd-networkd-wait-online.service.d"
+    _config_install_display "Configs (GUI)" "${config_install_gui_linux[@]}"
+  fi
+
+  if [ "${OS_IN_WSL}" == "1" ]; then
+    local windows_user=
+
+    # shellcheck disable=SC2016
+    windows_user="$(powershell.exe '$env:UserName' 2>/dev/null | tr -d '\r\n')"
+
+    _config_install_display "Configs (WSL)" "%WindowsUser" "${windows_user}" "${config_install_wsl[@]}"
+  fi
+
+  if [ "${OS_DISTRO}" == "arch" ]; then
+    # It's a bit more complicated to extract this into a variable since it has
+    # a condition with a fallback. For now let's keep it hard coded until a
+    # better pattern arrises to handle this in a dynamic way.
+    if [ -f "etc/pacman.d/02-ignore.conf" ]; then
+      config_install_arch+=("sudo ln -fns \"${DOTFRIEDRICE_PATH}/etc/pacman.d/02-ignore.conf\" \"/etc/pacman.d/02-ignore.conf\"")
+    else
+      sudo rm -f "/etc/pacman.d/02-ignore.conf"
+    fi
+
+    _config_install_display "Configs (Arch)" "${config_install_arch[@]}"
+  fi
+
+  # Nested helper function.
+  _activate_configs() {
+    # Avoid using ln -T flag since it doesn't exist on macOS. We're being
+    # extra careful here to only delete symlinks if they exist. Technically
+    # rm -f would work but that could delete real files potentially.
+    [ -L "${XDG_CONFIG_HOME}/nvim" ] && rm "${XDG_CONFIG_HOME}/nvim"
+
+    _config_install "${config_install[@]}"
+
+    [ "${GUI_ENABLED}" == "1" ] && _config_install "${config_install_gui_linux[@]}"
+    [ "${OS_IN_WSL}" == "1" ] && _config_install "%WindowsUser" "${windows_user}" "${config_install_wsl[@]}"
+    [ "${OS_DISTRO}" == "arch" ] && _config_install "${config_install_arch[@]}"
+
+    return 0
+  }
+
+  if [ "${auto_confirm}" == "1" ]; then
+    _activate_configs
+    return
+  fi
+
+  if ((warning_count > 0)); then
     cat <<EOF
 
 ---
 
-The above is a diff between your ${real_file} and the ${example_file}.
-Anything you see in green is in the updated ${example_file}.
+${C_MAGENTA}A destructive action is about to happen. Any warnings you see above indicate
+you have a file not managed by DotFriedRice at that path and now DotFriedRice
+wants to overwrite it.${C_RESET}
 
-It's completely normal for you to see your custom changes here but the
-${example_file} file has a newer mtime (modified time) than your config
-which indicates it might have new updates for you to merge into your ${real_file}.
+${C_YELLOW}What would you like to do next?
 
-This merge cannot be automated in a reasonable way so you'll want to eyeball it
-and copy over new lines, remove unused lines or update existing defaults.
+1) Overwrite all files listed above (you will lose them unless you back them up!)
+2) Skip overwriting anything and this script will exit so you can assess the situation${C_RESET}
 
-If you want to proceed anyways you can run: touch ${real_file}
-
-The above will update your config's mtime, but be warned this could allow the
-dotfriedrice script to run in unintended ways with missing configuration values.
-
+You can manually back these files up now while this prompt is running and
+then choose to overwrite them with option 1.
+${C_WHITE}
+If you're on a fresh system with no terminal yet you can press Ctrl+Alt+F2 to
+use tty2 and then jump back to this script by pressing Ctrl+Alt+F1. If you're on
+a laptop you might need to also hold down Fn.${C_RESET}
 EOF
 
-    _error "There are potentially new updates to merge into your '${real_file}'"
+    while true; do
+      printf "\nWhich option number would you like to pick? "
+      read -r option
 
-  else
-    _skipping "'${real_file}' is up to date"
-  fi
-}
-
-update_dotfriedrice() {
-  _info "UPDATE DOTFRIEDRICE"
-
-  if [ "${DOTFRIEDRICE_FIRST_RUN}" == "1" ]; then
-    _skipping "This is the first time you've run this script"
-    return
-  fi
-
-  if [[ "${PULL}" != "1" && "${PULL_UPDATE}" != "1" ]]; then
-    _skipping "Rerun with pull or update to get the latest changes"
-    return
+      case "${option}" in
+      1)
+        break
+        ;;
+      2)
+        exit
+        ;;
+      *) _error "'${option}' isn't a valid choice, pick 1 or 2" "" ;;
+      esac
+    done
   fi
 
-  # This feels like a good default because it lets you check a branch out
-  # locally and potentially merge into that without needing to change anything.
-  local local_branch=
-  local_branch="$(git branch --show-current)"
-
-  # This is explained a bit further down.
-  local test_branch="${2:-}"
-
-  if [[ -z "${local_branch}" && -z "${test_branch}" ]]; then
-    _error "Are you in a detached state? Checkout a branch before pulling or updating, aborting!"
-  fi
-
-  # If a custom branch name was set, we're testing a branch which means
-  # we want both the remote + local branches to be the same to avoid merging
-  # into the currently checked out branch (likely master).
-  if [ -n "${test_branch}" ]; then
-    if ! git ls-remote --exit-code --heads origin "${test_branch}" 1>/dev/null; then
-      _error "Remote branch '${test_branch}' does not exist, aborting!"
-    fi
-
-    local_branch="${test_branch}"
-    DOTFRIEDRICE_BRANCH="${test_branch}"
-
-    git fetch --quiet origin "${DOTFRIEDRICE_BRANCH}"
-
-    # Create the branch locally if it doesn't exist. Quiet is skipped here
-    # because showing that a new branch was created seems useful.
-    if ! git show-ref --quiet --verify "refs/heads/${local_branch}"; then
-      git checkout -b "${local_branch}" "origin/${DOTFRIEDRICE_BRANCH}"
-    fi
-  else
-    # If there's no custom branch passed in, we only need to fetch.
-    git fetch --quiet origin "${DOTFRIEDRICE_BRANCH}"
-  fi
-
-  local new_commit_count=
-  new_commit_count="$(git rev-list "${local_branch}..origin/${DOTFRIEDRICE_BRANCH}" --count)"
-
-  if [ "${new_commit_count}" = "0" ]; then
-    _skipping "Local '${local_branch}' has the latest commits from remote '${DOTFRIEDRICE_BRANCH}'"
-  else
-    # Let's merge the latest updates into the local branch.
-    git checkout --quiet "${local_branch}"
-    git merge "origin/${DOTFRIEDRICE_BRANCH}"
-
-    # Insurance to always make sure an dotfriedrice-config exists.
-    cp -n "${DOTFRIEDRICE_PATH}/dotfriedrice-config.example" "${DOTFRIEDRICE_PATH}/dotfriedrice-config"
-
-    # Re-run this script because if an update happened, it's possible new
-    # configuration was introduced which means reading in their env vars.
-    exec "${0}" "${@}"
-  fi
+  _activate_configs
 }
 
 install_fonts() {
@@ -1356,121 +1566,6 @@ install_external_scripts() {
   done
 
   printf "\nInstalled to '%s'\n" "${HOME}/.local/bin/"
-}
-
-install_configs() {
-  local auto_confirm="${1:-"${CONFIG_INSTALL_AUTO_CONFIRM}"}"
-
-  _info "INSTALL CONFIGS"
-
-  local warning_count=0
-
-  local config_install=()
-  local config_install_gui_linux=()
-  local config_install_wsl=()
-  local config_install_arch=()
-
-  ((${#CONFIG_INSTALL[@]} > 0)) && config_install+=("${CONFIG_INSTALL[@]}")
-  ((${#CONFIG_INSTALL_EXTRAS[@]} > 0)) && config_install+=("${CONFIG_INSTALL_EXTRAS[@]}")
-
-  ((${#CONFIG_INSTALL_GUI_LINUX[@]} > 0)) && config_install_gui_linux+=("${CONFIG_INSTALL_GUI_LINUX[@]}")
-  ((${#CONFIG_INSTALL_GUI_LINUX_EXTRAS[@]} > 0)) && config_install_gui_linux+=("${CONFIG_INSTALL_GUI_LINUX_EXTRAS[@]}")
-
-  ((${#CONFIG_INSTALL_WSL[@]} > 0)) && config_install_wsl+=("${CONFIG_INSTALL_WSL[@]}")
-  ((${#CONFIG_INSTALL_WSL_EXTRAS[@]} > 0)) && config_install_wsl+=("${CONFIG_INSTALL_WSL_EXTRAS[@]}")
-
-  ((${#CONFIG_INSTALL_ARCH[@]} > 0)) && config_install_arch+=("${CONFIG_INSTALL_ARCH[@]}")
-  ((${#CONFIG_INSTALL_ARCH_EXTRAS[@]} > 0)) && config_install_arch+=("${CONFIG_INSTALL_ARCH_EXTRAS[@]}")
-
-  _config_install_display "Configs" "${config_install[@]}"
-
-  if [ "${GUI_ENABLED}" == "1" ]; then
-    sudo mkdir -p "/etc/systemd/system/systemd-networkd-wait-online.service.d"
-    _config_install_display "Configs (GUI)" "${config_install_gui_linux[@]}"
-  fi
-
-  if [ "${OS_IN_WSL}" == "1" ]; then
-    local windows_user=
-
-    # shellcheck disable=SC2016
-    windows_user="$(powershell.exe '$env:UserName' 2>/dev/null | tr -d '\r\n')"
-
-    _config_install_display "Configs (WSL)" "%WindowsUser" "${windows_user}" "${config_install_wsl[@]}"
-  fi
-
-  if [ "${OS_DISTRO}" == "arch" ]; then
-    # It's a bit more complicated to extract this into a variable since it has
-    # a condition with a fallback. For now let's keep it hard coded until a
-    # better pattern arrises to handle this in a dynamic way.
-    if [ -f "etc/pacman.d/02-ignore.conf" ]; then
-      config_install_arch+=("sudo ln -fns \"${DOTFRIEDRICE_PATH}/etc/pacman.d/02-ignore.conf\" \"/etc/pacman.d/02-ignore.conf\"")
-    else
-      sudo rm -f "/etc/pacman.d/02-ignore.conf"
-    fi
-
-    _config_install_display "Configs (Arch)" "${config_install_arch[@]}"
-  fi
-
-  # Nested helper function.
-  _activate_configs() {
-    # Avoid using ln -T flag since it doesn't exist on macOS. We're being
-    # extra careful here to only delete symlinks if they exist. Technically
-    # rm -f would work but that could delete real files potentially.
-    [ -L "${XDG_CONFIG_HOME}/nvim" ] && rm "${XDG_CONFIG_HOME}/nvim"
-
-    _config_install "${config_install[@]}"
-
-    [ "${GUI_ENABLED}" == "1" ] && _config_install "${config_install_gui_linux[@]}"
-    [ "${OS_IN_WSL}" == "1" ] && _config_install "%WindowsUser" "${windows_user}" "${config_install_wsl[@]}"
-    [ "${OS_DISTRO}" == "arch" ] && _config_install "${config_install_arch[@]}"
-
-    return 0
-  }
-
-  if [ "${auto_confirm}" == "1" ]; then
-    _activate_configs
-    return
-  fi
-
-  if ((warning_count > 0)); then
-    cat <<EOF
-
----
-
-${C_MAGENTA}A destructive action is about to happen. Any warnings you see above indicate
-you have a file not managed by DotFriedRice at that path and now DotFriedRice
-wants to overwrite it.${C_RESET}
-
-${C_YELLOW}What would you like to do next?
-
-1) Overwrite all files listed above (you will lose them unless you back them up!)
-2) Skip overwriting anything and this script will exit so you can assess the situation${C_RESET}
-
-You can manually back these files up now while this prompt is running and
-then choose to overwrite them with option 1.
-${C_WHITE}
-If you're on a fresh system with no terminal yet you can press Ctrl+Alt+F2 to
-use tty2 and then jump back to this script by pressing Ctrl+Alt+F1. If you're on
-a laptop you might need to also hold down Fn.${C_RESET}
-EOF
-
-    while true; do
-      printf "\nWhich option number would you like to pick? "
-      read -r option
-
-      case "${option}" in
-      1)
-        break
-        ;;
-      2)
-        exit
-        ;;
-      *) _error "'${option}' isn't a valid choice, pick 1 or 2" "" ;;
-      esac
-    done
-  fi
-
-  _activate_configs
 }
 
 configure_sudoers_entries() {
@@ -1739,6 +1834,38 @@ EOF
   echo "Configured in '${xdg_local_path}'"
 }
 
+configure_git() {
+  _info "CONFIGURE GIT"
+
+  local git_config_local_path="${DOTFRIEDRICE_PATH}/.config/git/config.local"
+
+  if [ ! -f "${git_config_local_path}" ]; then
+    cat <<EOF >"${git_config_local_path}"
+[user]
+  name = ${YOUR_NAME}
+  email = ${YOUR_EMAIL}
+
+# Uncomment the options below to auto-sign your git commits / tags using GPG.
+# Learn more about signing git commits here:
+#   https://nickjanetakis.com/blog/signing-and-verifying-git-commits-on-the-command-line-and-github
+
+#[commit]
+#  gpgsign = true
+
+# This option requires git 2.23+ to work and you must annotate your tags,
+# although -m "" works if you want an empty message.
+#[tag]
+#  gpgSign = true
+
+[delta]
+  # If you prefer side by side diffs, uncomment this.
+  #side-by-side = true
+EOF
+  fi
+
+  echo "Configured in '$(dirname "${git_config_local_path}")'"
+}
+
 configure_shell() {
   _info "CONFIGURE SHELL (ZSH)"
 
@@ -1869,60 +1996,16 @@ EOF
   echo "Configured in '${DOTFRIEDRICE_PATH}/.config/zsh/'"
 }
 
-ask_for_name() {
-  _info "ASKING FOR YOUR NAME"
+install_tmux_plugins() {
+  _info "INSTALL TMUX PLUGINS"
 
-  local name=
+  local plugin_path="${XDG_CONFIG_HOME}/tmux/plugins"
+  local tpm_path="${plugin_path}/tpm"
 
-  if [ -n "${YOUR_NAME}" ]; then
-    _skipping "'${YOUR_NAME}' was retrieved from your install config"
-    return 0
-  fi
+  rm -rf "${tpm_path}"
+  git clone --depth 1 https://github.com/tmux-plugins/tpm "${tpm_path}"
 
-  if name="$(git config user.name)"; then
-    _skipping "'${name}' was retrieved from your git config"
-  else
-    while true; do
-      printf "What is your full name (ie. Dade Murphy)? "
-      read -r name
-
-      if [[ ${name} =~ [^[:space:]]+ ]]; then
-        break
-      else
-        _error "Please enter at least your first name\n" ""
-      fi
-    done
-  fi
-
-  YOUR_NAME="${name}"
-}
-
-ask_for_email() {
-  _info "ASKING FOR YOUR EMAIL"
-
-  local email=
-
-  if [ -n "${YOUR_EMAIL}" ]; then
-    _skipping "'${YOUR_EMAIL}' was retrieved from your install config"
-    return 0
-  fi
-
-  if email="$(git config user.email)"; then
-    _skipping "'${email}' was retrieved from your git config"
-  else
-    while true; do
-      printf "What is your email address (ie. zerocool@example.com)? "
-      read -r email
-
-      if [[ ${email} =~ .+@.+ ]]; then
-        break
-      else
-        _error "Please enter a valid email address\n" ""
-      fi
-    done
-  fi
-
-  YOUR_EMAIL="${email}"
+  "${tpm_path}/bin/install_plugins"
 }
 
 create_ssh_key() {
@@ -1989,87 +2072,6 @@ EOF
 
   # Delete the last line in a way that works on Linux and macOS.
   gpg --list-keys "${YOUR_EMAIL}" | sed '$d'
-}
-
-configure_git() {
-  _info "CONFIGURE GIT"
-
-  local git_config_local_path="${DOTFRIEDRICE_PATH}/.config/git/config.local"
-
-  if [ ! -f "${git_config_local_path}" ]; then
-    cat <<EOF >"${git_config_local_path}"
-[user]
-  name = ${YOUR_NAME}
-  email = ${YOUR_EMAIL}
-
-# Uncomment the options below to auto-sign your git commits / tags using GPG.
-# Learn more about signing git commits here:
-#   https://nickjanetakis.com/blog/signing-and-verifying-git-commits-on-the-command-line-and-github
-
-#[commit]
-#  gpgsign = true
-
-# This option requires git 2.23+ to work and you must annotate your tags,
-# although -m "" works if you want an empty message.
-#[tag]
-#  gpgSign = true
-
-[delta]
-  # If you prefer side by side diffs, uncomment this.
-  #side-by-side = true
-EOF
-  fi
-
-  echo "Configured in '$(dirname "${git_config_local_path}")'"
-}
-
-install_programming_languages() {
-  _info "INSTALL PROGRAMMING LANGUAGES"
-
-  declare -A mise_languages
-
-  # Merge both arrays.
-  for key in "${!MISE_LANGUAGES[@]}"; do
-    mise_languages["${key}"]="${MISE_LANGUAGES[${key}]}"
-  done
-  for key in "${!MISE_LANGUAGES_EXTRAS[@]}"; do
-    mise_languages["${key}"]="${MISE_LANGUAGES_EXTRAS[${key}]}"
-  done
-
-  if ((${#mise_languages[@]} == 0)); then
-    _skipping "No languages set"
-    return
-  fi
-
-  for key in "${!mise_languages[@]}"; do
-    [[ "${key}" = "0" || -z "${mise_languages[${key}]}" ]] && continue
-
-    printf "\n%bInstalling %b:%b\n\n" "${C_BLUE}" "${mise_languages["${key}"]}" "${C_RESET}"
-    if command -v "${XDG_DATA_HOME}/mise/shims/${key}" 1>/dev/null; then
-      _skipping "Already installed, run 'mise upgrade ${key} --bump' to upgrade"
-    else
-      mise use --global "${mise_languages[${key}]}"
-    fi
-
-    # Also install Yarn for Node.
-    if [ "${key}" = "node" ]; then
-      if ! yarn --version >/dev/null 2>&1; then
-        npm install --unsafe-perm=true --allow-root --global yarn
-      fi
-    fi
-  done
-}
-
-install_tmux_plugins() {
-  _info "INSTALL TMUX PLUGINS"
-
-  local plugin_path="${XDG_CONFIG_HOME}/tmux/plugins"
-  local tpm_path="${plugin_path}/tpm"
-
-  rm -rf "${tpm_path}"
-  git clone --depth 1 https://github.com/tmux-plugins/tpm "${tpm_path}"
-
-  "${tpm_path}/bin/install_plugins"
 }
 
 set_theme() {
@@ -2484,26 +2486,26 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   compare_install_config
   ensure_sudo_works
   create_initial_dirs
+  ask_for_name
+  ask_for_email
   install_packages
+  install_programming_languages
+  install_configs
   install_fonts
   install_gui_themes
   install_zsh_plugins
   install_external_scripts
-  install_configs
   configure_sudoers_entries
   configure_udev_rules
   configure_systemd_services
   configure_system_configs
   configure_home_configs
   configure_xdg_directories
+  configure_git
   configure_shell
-  ask_for_name
-  ask_for_email
+  install_tmux_plugins
   create_ssh_key
   create_gpg_key
-  configure_git
-  install_programming_languages
-  install_tmux_plugins
   set_theme "${@}"
   healthcheck
   completed_message
