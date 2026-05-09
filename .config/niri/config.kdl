@@ -198,6 +198,7 @@ binds {
     Mod+Alt+F            hotkey-overlay-title="File manager" { spawn "thunar"; }
     Mod+Alt+Shift+F      hotkey-overlay-title="File manager (floating)" { spawn "thunar" "--name=dfr.floating.thunar"; }
     Mod+Alt+N            hotkey-overlay-title="Notes" { spawn "dfr-launch-or-focus-tui" "notes"; }
+    Mod+Alt+Shift+N      hotkey-overlay-title="Notes (directory)" { spawn-sh "dfr-launch-or-focus-tui ${EDITOR} ${NOTES_DIRECTORY}"; }
     Mod+Alt+P            hotkey-overlay-title="Passwords" { spawn "dfr-launch-or-focus" "keepassxc"; }
     Mod+Alt+M            hotkey-overlay-title="Music" { spawn "dfr-launch-or-focus-tui" "rmpc"; }
     Mod+Alt+B            hotkey-overlay-title="Browser" { spawn "firefox"; }
