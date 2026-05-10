@@ -197,29 +197,36 @@ export CONFIG_INSTALL_AUTO_CONFIRM="0"
 #
 # Symlinks allow you to keep the configs in DotFriedRice's repo but have them
 # exist in ~/.config/xxx so programs pick them up. You can also create .local
-# versions of these files in DFR's repo and symlink them, this allows you
-# to fully overwrite a config without forking this repo.
+# versions of these files in DFR's repo and symlink them. This allows you
+# to modify a config without forking this repo.
 #
 # The only requirement is each item in the list follows this format, use the
 # default file to see what real examples look like.
 #
 # "<COMMAND> <SOURCE> <DESTINATION>"
+#
+# For skipping, you can copy the exact full item from the defaults in
+# _install/default/config_install into the associated variable below.
 
 # Configs defined here will get created in all OS / environments.
 export CONFIG_INSTALL=()
 export CONFIG_INSTALL_EXTRAS=()
+export CONFIG_INSTALL_SKIP=()
 
 # Configs defined here only get created when GUI_LINUX=1 is set.
 export CONFIG_INSTALL_GUI_LINUX=()
 export CONFIG_INSTALL_GUI_LINUX_EXTRAS=()
+export CONFIG_INSTALL_GUI_LINUX_SKIP=()
 
 # Configs defined here only get created when on Arch Linux.
 export CONFIG_INSTALL_ARCH=()
 export CONFIG_INSTALL_ARCH_EXTRAS=()
+export CONFIG_INSTALL_ARCH_SKIP=()
 
 # Configs defined here only get created when in WSL.
 export CONFIG_INSTALL_WSL=()
 export CONFIG_INSTALL_WSL_EXTRAS=()
+export CONFIG_INSTALL_WSL_SKIP=()
 
 # -----------------------------------------------------------------------------
 # Sudoers entries
