@@ -473,6 +473,9 @@ in.
 
 At this point you have Arch installed and you can run the bootstrap script
 [mentioned earlier in this readme](#%EF%B8%8F-install) to install DotFriedRice!
+There's also a [video
+guide](https://www.youtube.com/watch?v=RII3MI7xdeU&t=4191s) walking through the
+installation.
 
 ### How to get started with the desktop environment?
 
