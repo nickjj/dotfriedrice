@@ -178,7 +178,7 @@ and installing a
 distro](#how-to-get-set-up-on-windows-to-install-wsl-2-and-a-distro). Please
 follow that before installing DotFriedRice.
 
-If you're on macOS, you're good to and don't need to do anything extra.
+If you're on macOS, you're good to go and don't need to do anything extra.
 
 If you're on an Arch based distro, you're good to go and don't need to do anything extra.
 
