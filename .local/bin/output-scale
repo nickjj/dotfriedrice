@@ -24,8 +24,8 @@ scale_exists() {
   # Confirm the scale is a valid choice.
   local value="${1}"
 
-  for s in "${SCALES[@]}"; do
-    [ "$(scale_to_int "${s}")" == "${value}" ] && return 0
+  for scale in "${SCALES[@]}"; do
+    [ "$(scale_to_int "${scale}")" == "${value}" ] && return 0
   done
 
   return 1
@@ -117,13 +117,13 @@ adjust_scale() {
   local current_scale_index="${2}"
 
   case "${input}" in
-  "+")
+  +)
     local next_scale_index="$((current_scale_index + 1))"
     ((next_scale_index >= ${#SCALES[@]})) && next_scale_index="${current_scale_index}"
     printf '%s\n' "${SCALES[${next_scale_index}]}"
     ;;
 
-  "-")
+  -)
     local next_scale_index="$((current_scale_index - 1))"
     ((next_scale_index < 0)) && next_scale_index=0
     printf '%s\n' "${SCALES[${next_scale_index}]}"
