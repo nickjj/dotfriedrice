@@ -229,7 +229,7 @@ docker container run --rm -it -e "OS_IN_CONTAINER=1" -v "${PWD}:/app" -w /app de
 #
 # Since we can't open a new terminal in a container we'll need to manually
 # launch zsh and source a few files. That's what the last line is doing.
-apt-get update && apt-get install --yes --no-install-recommends curl \
+apt-get update && apt-get install --yes --no-install-recommends curl ca-certificates \
   && bash <(curl -fsSL https://raw.githubusercontent.com/nickjj/dotfriedrice/master/bootstrap) \
   && zsh -c ". ~/.config/zsh/.zprofile && . ~/.config/zsh/.zshrc; zsh -i"
 ```
