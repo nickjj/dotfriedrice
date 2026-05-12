@@ -2312,8 +2312,6 @@ parse_args() {
     ;;
   diff)
     # Show a diff of any local uncommitted or committed changes vs the target.
-    #
-    # Since we have fzf, let's use it to make browsing diffs a nice experience!
     target="${2:-"origin/${DOTFRIEDRICE_BRANCH}"}"
     side_by_side="${3:-}"
 
@@ -2323,7 +2321,9 @@ parse_args() {
       side_by_side="--side"
     fi
 
-    git remote | grep -q "${target//./}" && git fetch "${target//./}"
+    remote="${target%%/*}"
+
+    git remote | grep --quiet --line-regexp "${remote}" && git fetch --quiet "${remote}"
     gd "${target}" ${side_by_side:+"${side_by_side}"}
 
     _info "CONDENSED GIT DIFF" ""
@@ -2338,11 +2338,14 @@ parse_args() {
 
     # Since target is optional we need to handle only passing in --side.
     if [ "${target}" = "--side" ]; then
-      target="origin/${DOTFRIEDRICE_BRANCH}"
+      target="..origin/${DOTFRIEDRICE_BRANCH}"
       side_by_side="--side"
     fi
 
-    git remote | grep -q "${target//./}" && git fetch --quiet "${target//./}"
+    remote="${target#*..}"
+    remote="${remote%%/*}"
+
+    git remote | grep --quiet --line-regexp "${remote}" && git fetch --quiet "${remote}"
     gl "${target}" ${side_by_side:+"${side_by_side}"}
 
     exit
@@ -2358,7 +2361,9 @@ parse_args() {
       side_by_side="--side"
     fi
 
-    git remote | grep -q "${target}" && git fetch --quiet "${target}"
+    remote="${target%%/*}"
+
+    git remote | grep --quiet --line-regexp "${remote}" && git fetch --quiet "${remote}"
     gl "${target}" ${side_by_side:+"${side_by_side}"}
 
     exit
