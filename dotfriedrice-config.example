@@ -279,7 +279,7 @@ export UDEV_RULES_EXTRAS
 
 # Services in this list will start on boot if they exist, for example
 # SYSTEMD_ENABLED_SERVICES_EXTRAS=("docker.service") is enabled by default.
-# Use "myservice --user" to have it enabled with --user, likewise you can use
-# "myservice --now" and combine these flags as needed.
+# Use "myservice.service --user" to have it enabled with --user, likewise you
+# can use "myservice.service --now" and combine these flags as needed.
 export SYSTEMD_ENABLED_SERVICES=()
 export SYSTEMD_ENABLED_SERVICES_EXTRAS=()
