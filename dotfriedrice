@@ -1279,6 +1279,26 @@ install_configs() {
   fi
 
   if [ "${OS_DISTRO}" == "arch" ]; then
+    local etc_pacman_conf_path="/etc/pacman.conf"
+
+    # Ensure multilib is disabled since we'll enable it with an include file,
+    # on vanilla Arch it's disabled but other variants might have it enabled.
+    if grep -q "^\[multilib\]" "${etc_pacman_conf_path}"; then
+      sudo sed -i "/^\[multilib\]/,+1 s/^/#/" "${etc_pacman_conf_path}"
+    fi
+
+    if compgen -G "/etc/pacman.d/*.conf" 1>/dev/null; then
+      if ! grep -q "Include = /etc/pacman\.d/\*\.conf" "${etc_pacman_conf_path}"; then
+        printf "\nInclude = /etc/pacman.d/*.conf\n" | sudo tee --append "${etc_pacman_conf_path}" 1>/dev/null
+      fi
+    else
+      # Pacman will fail to run if there's no conf files while this line exists
+      # so we can remove the line.
+      if grep -q "Include = /etc/pacman\.d/\*\.conf" "${etc_pacman_conf_path}"; then
+        sudo sed -i "\|Include = /etc/pacman.d/\*\.conf|d" "${etc_pacman_conf_path}"
+      fi
+    fi
+
     # It's a bit more complicated to extract this into a variable since it has
     # a condition with a fallback. For now let's keep it hard coded until a
     # better pattern arrises to handle this in a dynamic way.
@@ -1722,50 +1742,21 @@ configure_systemd_services() {
   done
 }
 
-configure_system_configs() {
-  _info "CONFIGURE SYSTEM CONFIGS"
-
-  if [ "${OS_DISTRO}" = "arch" ]; then
-    local etc_pacman_conf_path="/etc/pacman.conf"
-    local changed="0"
-
-    # Ensure multilib is disabled since we'll enable it with an include file,
-    # on vanilla Arch it's disabled but other variants might have it enabled.
-    if grep -q "^\[multilib\]" "${etc_pacman_conf_path}"; then
-      sudo sed -i "/^\[multilib\]/,+1 s/^/#/" "${etc_pacman_conf_path}"
-      changed="1"
-    fi
-
-    if compgen -G "/etc/pacman.d/*.conf" 1>/dev/null; then
-      if ! grep -q "Include = /etc/pacman\.d/\*\.conf" "${etc_pacman_conf_path}"; then
-        printf "\nInclude = /etc/pacman.d/*.conf\n" | sudo tee --append "${etc_pacman_conf_path}" 1>/dev/null
-        changed="1"
-      fi
-    else
-      # Pacman will fail to run if there's no conf files while this line exists
-      # so we can remove the line.
-      if grep -q "Include = /etc/pacman\.d/\*\.conf" "${etc_pacman_conf_path}"; then
-        sudo sed -i "\|Include = /etc/pacman.d/\*\.conf|d" "${etc_pacman_conf_path}"
-        changed="1"
-      fi
-    fi
-
-    if [ "${changed}" == "0" ]; then
-      _skipping "'${etc_pacman_conf_path}' already up to date"
-    else
-      echo "'${etc_pacman_conf_path}' has been updated"
-    fi
-  else
-    _skipping "Only runs on Arch Linux based systems"
-  fi
+configure_groups() {
+  _info "CONFIGURE GROUPS"
 
   if [ "${GUI_ENABLED}" == "1" ]; then
     for group in docker libvirt; do
       if [[ " ${PACKAGES_PACMAN_GUI[*]} " == *" ${group} "* ]] &&
         ! id --name --groups "${USER}" | grep --quiet --word-regexp "${group}"; then
         sudo usermod -aG "${group}" "${USER}"
+        echo "'${group}' has been associated with '${USER}' user"
+      else
+        _skipping "'${group}' already associated with '${USER}' user"
       fi
     done
+  else
+    _skipping "Only runs on Linux when GUI_LINUX=1 is set"
   fi
 }
 
@@ -2541,7 +2532,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   configure_sudoers_entries
   configure_udev_rules
   configure_systemd_services
-  configure_system_configs
+  configure_groups
   configure_home_configs
   configure_xdg_directories
   configure_git
