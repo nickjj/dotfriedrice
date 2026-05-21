@@ -96,6 +96,7 @@ packages, standalone scripts, programming languages and more.
   - [How to personalize DotFriedRice?](#how-to-personalize-dot-fried-rice)
   - [How to theme custom apps?](#how-to-get-theme-custom-apps)
   - [How to add custom themes?](#how-to-add-custom-themes)
+  - [How to enable certain GTK apps to use the configured theme?](#how-to-enable-certain-gtk-apps-to-use-the-configured-theme)
   - [How to install Arch Linux?](#how-to-install-arch-linux)
   - [How to get started with the desktop environment?](#how-to-get-started-with-the-desktop-environment)
   - [How much resources does the desktop environment use?](#how-much-resources-does-the-desktop-environment-use)
@@ -349,6 +350,23 @@ picked in step 3.
 
 If you added a theme with good contrast ratios please open a pull request to
 get it added to this project.
+
+### How to enable certain GTK apps to use the configured theme?
+
+Most apps default to using your system's theme but some do not. Here's 1-time
+actions you'll want to take to get these apps to use the GTK theme. Once set,
+they'll automatically use your configured GTK theme.
+
+#### Firefox
+
+In `about:config` set `browser.theme.toolbar-theme` to `0` (it defaults to 2).
+This allows the whole top area of Firefox (title bar, tabs, toolbars, etc.) to
+match the theme.
+
+#### GIMP
+
+Navigate to `Edit -> Preferences -> Interface -> Theme`, double click "System"
+as the theme and click OK.
 
 ### How to install Arch Linux?
 
