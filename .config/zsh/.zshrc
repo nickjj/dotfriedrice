@@ -29,13 +29,13 @@ export PROMPT
 
 # History settings.
 export HISTFILE="${DOTFRIEDRICE_PATH}/.config/zsh/.zsh_history"
-export HISTTIMEFORMAT="%Y/%m/%d %H:%M:%S:   "
-export HISTSIZE=50000       # History lines stored in mememory.
-export SAVEHIST=50000       # History lines stored on disk.
-setopt INC_APPEND_HISTORY   # Immediately append commands to history file.
-setopt HIST_IGNORE_ALL_DUPS # Never add duplicate entries.
-setopt HIST_IGNORE_SPACE    # Ignore commands that start with a space.
-setopt HIST_REDUCE_BLANKS   # Remove unnecessary blank lines.
+export HISTSIZE=50000           # History lines stored in mememory.
+export SAVEHIST=50000           # History lines stored on disk.
+setopt EXTENDED_HISTORY         # Save history with timestamps.
+setopt INC_APPEND_HISTORY_TIME  # Immediately append commands and track duration.
+setopt HIST_IGNORE_ALL_DUPS     # Never add duplicate entries.
+setopt HIST_IGNORE_SPACE        # Ignore commands that start with a space.
+setopt HIST_REDUCE_BLANKS       # Remove unnecessary blank lines.
 
 # Use modern completion system. Other than enabling globdots for showing
 # hidden files, these ares values in the default generated zsh config.
