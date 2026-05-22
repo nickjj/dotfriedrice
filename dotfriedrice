@@ -1727,13 +1727,15 @@ configure_systemd_services() {
     prefix=()
     [[ " ${flags[*]} " == *" --user"* ]] || prefix=(sudo)
 
-    if systemctl cat "${flags[@]}" "${service}" 1>/dev/null; then
+    if systemctl cat "${flags[@]}" "${service}" >/dev/null 2>&1; then
       if "${prefix[@]}" systemctl "${flags[@]}" --quiet is-enabled "${service}"; then
         _skipping "'${service}' already enabled"
       else
         "${prefix[@]}" systemctl "${flags[@]}" enable "${service}" 1>/dev/null
         echo "'${service}' has been enabled"
       fi
+    else
+      _skipping "'${service}' is not installed"
     fi
   done
 }
