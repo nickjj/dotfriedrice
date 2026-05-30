@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Wrap kdenlive to disable non-error logs. It's very noisy and completely
+# overtakes journalctl logs relative to other apps running on the system.
+
+export QT_LOGGING_RULES="*.debug=false;*.info=false;*.warning=false"
+
+exec /usr/bin/kdenlive "$@"
