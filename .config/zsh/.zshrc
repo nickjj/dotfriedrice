@@ -29,7 +29,7 @@ export PROMPT
 
 # History settings.
 export HISTFILE="${DOTFRIEDRICE_PATH}/.config/zsh/.zsh_history"
-export HISTSIZE=50000          # History lines stored in mememory.
+export HISTSIZE=50000          # History lines stored in memory.
 export SAVEHIST=50000          # History lines stored on disk.
 setopt EXTENDED_HISTORY        # Save history with timestamps.
 setopt INC_APPEND_HISTORY_TIME # Immediately append commands and track duration.
