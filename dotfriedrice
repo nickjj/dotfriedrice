@@ -495,9 +495,9 @@ _install_packages_arch() {
     if [ ! -f "${gegl_plugins_path}/gegleffectspending.so" ]; then
       echo
       rm -rf "${gegl_zip_path}"
-      _curl "https://github.com/LinuxBeaver/Gimp_Layer_Effects_Text_Styler_Plugin_GEGL_Effects/releases/download/Continual_July22_2023/gegl_effects_linux_binaries_gegl_plugin.zip" -o "${gegl_zip_path}"
+      _curl "https://github.com/LinuxBeaver/Gimp_Layer_Effects_Text_Styler_Plugin_GEGL_Effects/releases/download/Continual_July22_2023/gegl_effects_MAIN_PLUGIN_LinuxBinaries.zip" -o "${gegl_zip_path}"
       mkdir -p "${gegl_plugins_path}"
-      unzip "${gegl_zip_path}" -d "${gegl_plugins_path}"
+      unzip -j "${gegl_zip_path}" -d "${gegl_plugins_path}"
       rm -rf "${gegl_zip_path}"
     fi
   fi
