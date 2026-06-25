@@ -1914,7 +1914,7 @@ configure_gui_app_themes() {
     if [ -d "${HOME}/.mozilla/firefox" ]; then
       firefox_config_base_dir="${HOME}/.mozilla/firefox"
     else
-      firefox_config_base_dir="${XDG_CONFIG_HOME}/firefox"
+      firefox_config_base_dir="${XDG_CONFIG_HOME}/mozilla/firefox"
     fi
 
     local firefox_config_dir=
