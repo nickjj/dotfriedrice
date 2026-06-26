@@ -6,4 +6,6 @@ export DEFAULT_SYSTEMD_ENABLED_SERVICES=(
   "libvirtd.socket"
   "paccache.timer --now"
   "virtlogd.socket"
+  "docker.service"
+  "docker-desktop.service --user"
 )

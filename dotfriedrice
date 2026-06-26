@@ -1722,16 +1722,6 @@ configure_systemd_services() {
     return
   fi
 
-  local packages=("${PACKAGES_PACMAN_GUI[@]}" "${PACKAGES_PACMAN_GUI_EXTRAS[@]}" "${PACKAGES_AUR_GUI[@]}" "${PACKAGES_AUR_GUI_EXTRAS[@]}")
-
-  if [[ " ${packages[*]} " == *" docker "* ]]; then
-    services+=("docker.service")
-  fi
-
-  if [[ " ${packages[*]} " == *" docker-desktop "* ]]; then
-    services+=("docker-desktop.service --user")
-  fi
-
   for item in "${services[@]}"; do
     # Segment out the service name and all of the flags.
     # shellcheck disable=SC2086
@@ -1739,6 +1729,18 @@ configure_systemd_services() {
     service="${1}"
     shift
     flags=("${@}")
+
+    # Ensure Docker isn't started if Docker Desktop is installed.
+    if [[ " ${service} " == *" docker.service "* ]] && pacman -Qeq "docker-desktop" >/dev/null 2>&1; then
+      if sudo systemctl --quiet is-enabled "${service}"; then
+        sudo systemctl disable --now docker.service docker.socket containerd.service 1>/dev/null
+        echo "'${service}' has been disabled since Docker Desktop is installed"
+      else
+        _skipping "'${service}' already disabled since Docker Desktop is installed"
+      fi
+
+      continue
+    fi
 
     prefix=()
     [[ " ${flags[*]} " == *" --user"* ]] || prefix=(sudo)
