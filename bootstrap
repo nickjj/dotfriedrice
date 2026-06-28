@@ -183,7 +183,7 @@ detect_env() {
     fi
 
     # Only fully support these Linux distros.
-    if [[ -z "${OS_DISTRO}" || ! "arch ubuntu debian raspbian" =~ ${OS_DISTRO} ]]; then
+    if [[ -z "${OS_DISTRO_LIKE}" || ! "arch ubuntu debian raspbian" =~ ${OS_DISTRO_LIKE} ]]; then
       cat <<EOF >&2
 Your distro identified as: '${OS_DISTRO_ORIGINAL}' (based on: '${OS_DISTRO_LIKE}')
 
