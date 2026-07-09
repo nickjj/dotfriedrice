@@ -152,6 +152,10 @@ declare -A MISE_LANGUAGES_EXTRAS=()
 # the value is what you would pass into Mise to install it.
 #MISE_LANGUAGES_EXTRAS["ruby"]="ruby@3.4"
 
+# To skip a default language, supply its key name, for example:
+#MISE_LANGUAGES_SKIP=("node")
+export MISE_LANGUAGES_SKIP=()
+
 export MISE_LANGUAGES
 export MISE_LANGUAGES_EXTRAS
 
@@ -243,6 +247,10 @@ declare -A SUDOERS_ENTRIES_EXTRAS=()
 # the value is the line written to the file.
 #SUDOERS_ENTRIES_EXTRAS["dfr-whois"]="${USER} ALL=(ALL) NOPASSWD: /usr/bin/whoami"
 
+# To skip a default entry, supply its file name key, for example:
+#SUDOERS_ENTRIES_SKIP=("dfr-timedatectl")
+export SUDOERS_ENTRIES_SKIP=()
+
 export SUDOERS_ENTRIES
 export SUDOERS_ENTRIES_EXTRAS
 
@@ -267,6 +275,10 @@ declare -A UDEV_RULES=()
 #   ["99-my-custom-rule"]='ACTION="add" [ADD_YOUR_RULE]'
 # )
 
+# To skip a default rule, supply its file name key (without .rules), for example:
+#UDEV_RULES_SKIP=("99-my-custom-rule")
+export UDEV_RULES_SKIP=()
+
 export UDEV_RULES
 export UDEV_RULES_EXTRAS
 
@@ -283,3 +295,7 @@ export UDEV_RULES_EXTRAS
 # can use "myservice.service --now" and combine these flags as needed.
 export SYSTEMD_ENABLED_SERVICES=()
 export SYSTEMD_ENABLED_SERVICES_EXTRAS=()
+
+# To skip a default service, simply supply its service name stripped off any flags, for example:
+#SYSTEMD_ENABLED_SERVICES_SKIP=("docker-desktop.service")
+export SYSTEMD_ENABLED_SERVICES_SKIP=()

@@ -248,6 +248,12 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     declare -A MISE_LANGUAGES_EXTRAS
   fi
 
+  if [[ "${MISE_LANGUAGES_SKIP+x}" ]]; then
+    [ -z "${MISE_LANGUAGES_SKIP}" ] && MISE_LANGUAGES_SKIP=()
+  else
+    MISE_LANGUAGES_SKIP=()
+  fi
+
   if [[ "${SCRIPTS_INSTALL+x}" ]]; then
     [ -z "${SCRIPTS_INSTALL}" ] && SCRIPTS_INSTALL=()
   else
@@ -347,6 +353,12 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     declare -A SUDOERS_ENTRIES_EXTRAS
   fi
 
+  if [[ "${SUDOERS_ENTRIES_SKIP+x}" ]]; then
+    [ -z "${SUDOERS_ENTRIES_SKIP}" ] && SUDOERS_ENTRIES_SKIP=()
+  else
+    SUDOERS_ENTRIES_SKIP=()
+  fi
+
   if [[ ! "${UDEV_RULES+x}" ]]; then
     unset UDEV_RULES
     declare -n UDEV_RULES=DEFAULT_UDEV_RULES
@@ -354,6 +366,12 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
   if [[ ! "${UDEV_RULES_EXTRAS+x}" ]]; then
     declare -A UDEV_RULES_EXTRAS
+  fi
+
+  if [[ "${UDEV_RULES_SKIP+x}" ]]; then
+    [ -z "${UDEV_RULES_SKIP}" ] && UDEV_RULES_SKIP=()
+  else
+    UDEV_RULES_SKIP=()
   fi
 
   if [[ "${SYSTEMD_ENABLED_SERVICES+x}" ]]; then
@@ -366,6 +384,12 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     [ -z "${SYSTEMD_ENABLED_SERVICES_EXTRAS}" ] && SYSTEMD_ENABLED_SERVICES_EXTRAS=()
   else
     SYSTEMD_ENABLED_SERVICES_EXTRAS=()
+  fi
+
+  if [[ "${SYSTEMD_ENABLED_SERVICES_SKIP+x}" ]]; then
+    [ -z "${SYSTEMD_ENABLED_SERVICES_SKIP}" ] && SYSTEMD_ENABLED_SERVICES_SKIP=()
+  else
+    SYSTEMD_ENABLED_SERVICES_SKIP=()
   fi
 fi
 
@@ -605,6 +629,25 @@ _display_packages() {
     _package_display "Mise (default)" "${MISE_DARWIN[@]}"
     _package_display "Mise (extras)" "${MISE_DARWIN_EXTRAS[@]}"
   fi
+}
+
+_skip_assoc_entries() {
+  # $1 = name of the associative array to filter, mutated in place
+  # $2 = name of the plain array holding keys to remove
+  local -n assoc_target="${1}"
+  local -n assoc_skip="${2}"
+
+  declare -A skip_map
+  local key
+  for key in "${assoc_skip[@]}"; do
+    skip_map["${key}"]=1
+  done
+
+  for key in "${!assoc_target[@]}"; do
+    if [[ -n "${skip_map[${key}]+x}" ]]; then
+      unset -v "assoc_target[${key}]"
+    fi
+  done
 }
 
 _skip_install_configs() {
@@ -1257,6 +1300,8 @@ install_programming_languages() {
     mise_languages["${key}"]="${MISE_LANGUAGES_EXTRAS[${key}]}"
   done
 
+  _skip_assoc_entries mise_languages MISE_LANGUAGES_SKIP
+
   if ((${#mise_languages[@]} == 0)); then
     _skipping "No languages set"
     return
@@ -1641,6 +1686,8 @@ configure_sudoers_entries() {
     sudoers_entries["${key}"]="${SUDOERS_ENTRIES_EXTRAS[${key}]}"
   done
 
+  _skip_assoc_entries sudoers_entries SUDOERS_ENTRIES_SKIP
+
   if ((${#sudoers_entries[@]} == 0)); then
     _skipping "No entries defined"
     return
@@ -1683,6 +1730,8 @@ configure_udev_rules() {
     udev_rules["${key}"]="${UDEV_RULES_EXTRAS[${key}]}"
   done
 
+  _skip_assoc_entries udev_rules UDEV_RULES_SKIP
+
   if ((${#udev_rules[@]} == 0)); then
     _skipping "No rules defined"
     return
@@ -1716,6 +1765,24 @@ configure_systemd_services() {
     "${SYSTEMD_ENABLED_SERVICES[@]}"
     "${SYSTEMD_ENABLED_SERVICES_EXTRAS[@]}"
   )
+
+  # Filter out skipped services by matching the service name (first word).
+  if ((${#SYSTEMD_ENABLED_SERVICES_SKIP[@]} > 0)); then
+    declare -A services_skip_map
+    for item in "${SYSTEMD_ENABLED_SERVICES_SKIP[@]}"; do
+      services_skip_map["${item}"]=1
+    done
+
+    local services_filtered=()
+    for item in "${services[@]}"; do
+      local service_name="${item%% *}"
+      if [[ -z "${services_skip_map[${service_name}]+x}" ]]; then
+        services_filtered+=("${item}")
+      fi
+    done
+
+    services=("${services_filtered[@]}")
+  fi
 
   if ((${#services[@]} == 0)); then
     _skipping "No services defined"
