@@ -1298,7 +1298,7 @@ install_programming_languages() {
     mise_languages["${key}"]="${MISE_LANGUAGES_EXTRAS[${key}]}"
   done
 
-  _skip_associative_array mise_languages MISE_LANGUAGES_SKIP
+  _skip_associative_array "mise_languages" "MISE_LANGUAGES_SKIP"
 
   if ((${#mise_languages[@]} == 0)); then
     _skipping "No languages set"
@@ -1684,7 +1684,7 @@ configure_sudoers_entries() {
     sudoers_entries["${key}"]="${SUDOERS_ENTRIES_EXTRAS[${key}]}"
   done
 
-  _skip_associative_array sudoers_entries SUDOERS_ENTRIES_SKIP
+  _skip_associative_array "sudoers_entries" "SUDOERS_ENTRIES_SKIP"
 
   if ((${#sudoers_entries[@]} == 0)); then
     _skipping "No entries defined"
@@ -1728,7 +1728,7 @@ configure_udev_rules() {
     udev_rules["${key}"]="${UDEV_RULES_EXTRAS[${key}]}"
   done
 
-  _skip_associative_array udev_rules UDEV_RULES_SKIP
+  _skip_associative_array "udev_rules" "UDEV_RULES_SKIP"
 
   if ((${#udev_rules[@]} == 0)); then
     _skipping "No rules defined"
