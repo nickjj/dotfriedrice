@@ -120,7 +120,7 @@ else
   fi
 fi
 
-killall swaybg 2>/dev/null || true
+pkill --full "swaybg --image ${WALLPAPER_PATH}" || true
 
 [ "${NEXT_WALLPAPER}" = "null" ] && fallback
 
