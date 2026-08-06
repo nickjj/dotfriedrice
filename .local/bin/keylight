@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Set a solid color wallpaper on all outputs or a specific one. If you re-run
+# the script with the same color it'll revert it back to your original wallpaper.
+#
+# Usage:
+#   keylight [--output NAME] [--color "#HEX_COLOR"]
+#
+# Examples:
+#   keylight
+#   keylight --color "#00ff00"
+#   keylight --output HDMI-A-2
+#   keylight --output HDMI-A-2 --color "#00ff00"
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+if [ -z "${NIRI_SOCKET}" ]; then
+  echo "This script is only available with the desktop environment, aborting!" >&2
+  exit 1
+fi
+
+KEYLIGHT_DEFAULT_COLOR="${KEYLIGHT_DEFAULT_COLOR:-#ffffff}"
+
+COLOR="${KEYLIGHT_DEFAULT_COLOR}"
+COLOR_REQUESTED="0"
+
+ARGS=()
+
+while [[ $# -gt 0 ]]; do
+  case "${1}" in
+  -c | --color)
+    COLOR="${2:-}"
+    COLOR_REQUESTED="1"
+
+    # Add the --color flag with its value.
+    ARGS+=("${1}" "${2:-}")
+
+    shift 2
+    ;;
+  *)
+    ARGS+=("${1}")
+
+    shift
+    ;;
+  esac
+done
+
+[ "${COLOR_REQUESTED}" != "1" ] && ARGS+=(--color "${COLOR}")
+
+# Track the swaybg process started by this script:
+#
+# - No active keylight        -> start keylight
+# - Same color is active      -> stop keylight and restore your wallpaper
+# - Different color is active -> replace keylight with the new color
+#
+# The state file stores the PID and color of the swaybg process we started.
+STATEFILE="${XDG_RUNTIME_DIR:-/tmp}/keylight.state"
+
+if [ -f "${STATEFILE}" ]; then
+  read -r pid current_color <"${STATEFILE}"
+
+  # Check if the process exists without sending a signal.
+  if kill -0 "${pid}" 2>/dev/null; then
+    kill "${pid}"
+
+    # Stop the keylight which restores your wallpaper.
+    if [ "${current_color}" == "${COLOR}" ]; then
+      rm -f "${STATEFILE}"
+      exit
+    fi
+  else
+    # Clean up stale state file if swaybg exits or is killed outside this script.
+    rm -f "${STATEFILE}"
+  fi
+fi
+
+swaybg "${ARGS[@]}" >/dev/null 2>&1 &
+printf "%s %s\n" "${!}" "${COLOR}" >"${STATEFILE}"
