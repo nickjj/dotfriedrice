@@ -22,9 +22,7 @@ OBS=
 EXIT_EARLY=
 
 GHOSTTY_FONT_SIZE=20
-
-OUTPUT_KEYLIGHT_NAME="${OUTPUT_KEYLIGHT_NAME:-HDMI-A-2}"
-OUTPUT_KEYLIGHT_COLOR="${OUTPUT_KEYLIGHT_COLOR:-#ffffff}"
+KEYLIGHT_DEFAULT_OUTPUT="${KEYLIGHT_DEFAULT_OUTPUT:-HDMI-A-2}"
 
 _usage() {
   cat <<EOF
@@ -150,8 +148,8 @@ if [ "${OBS}" == "1" ]; then
   niri msg action move-window-to-monitor-right
 fi
 
-# Use 2nd monitor as a key light.
-swaybg --output "${OUTPUT_KEYLIGHT_NAME}" --color "${OUTPUT_KEYLIGHT_COLOR}" >/dev/null 2>&1 &
+# Provide keylight.
+keylight --output "${KEYLIGHT_DEFAULT_OUTPUT}"
 
 cat <<EOF
 -> Shell history has been backed up to ${HISTFILE}.bak

@@ -14,6 +14,7 @@ if [ -z "${NIRI_SOCKET}" ]; then
 fi
 
 GHOSTTY_FONT_SIZE=11
+KEYLIGHT_DEFAULT_OUTPUT="${KEYLIGHT_DEFAULT_OUTPUT:-HDMI-A-2}"
 
 # Restore from the backup if it exists. Using mv here is safe because otherwise
 # we would run cp + rm on the file resulting in the same outcome.
@@ -38,8 +39,8 @@ dfr-reload-app ghostty
 
 output-scale 1.0
 
-# Restore original background.
-dfr-theme-set-bg --current
+# Restore original wallpaper.
+keylight --output "${KEYLIGHT_DEFAULT_OUTPUT}"
 
 cat <<EOF
 -> Shell history has been restored to ${HISTFILE}
