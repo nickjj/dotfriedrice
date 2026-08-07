@@ -17,6 +17,7 @@ mako)
   ;;
 swaybg)
   killall swaybg
+  dfr-theme-set-bg --keep-current
   ;;
 swayidle)
   killall swayidle
