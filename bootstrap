@@ -112,7 +112,7 @@ _run_as_root() {
 _package_install() {
   local packages=("${@}")
 
-  case "${OS_DISTRO}" in
+  case "${OS_DISTRO_LIKE}" in
   arch)
     _run_as_root pacman -Syu --noconfirm --needed "${packages[*]}"
     ;;
