@@ -603,7 +603,7 @@ _skip_packages() {
 
 _display_packages() {
   if [ "${OS_TYPE}" == "linux" ]; then
-    if [ "${OS_DISTRO}" == "arch" ]; then
+    if [ "${OS_DISTRO_LIKE}" == "arch" ]; then
       _package_display "Pacman (default)" "${PACKAGES_PACMAN[@]}"
       _package_display "Pacman (extras)" "${PACKAGES_PACMAN_EXTRAS[@]}"
       [ "${GUI_ENABLED}" == "1" ] && _package_display "Pacman GUI (default)" "${PACKAGES_PACMAN_GUI[@]}"
@@ -691,7 +691,7 @@ _config_install() {
 
   for item in "${commands[@]}"; do
     # A special rule to avoid breaking DNS in WSL 2.
-    if [[ "${OS_IN_WSL}" == "1" && "${OS_DISTRO}" = "arch" ]]; then
+    if [[ "${OS_IN_WSL}" == "1" && "${OS_DISTRO_LIKE}" = "arch" ]]; then
       [[ "${item}" == *"stub-resolv.conf"* ]] && continue
     fi
 
@@ -779,7 +779,7 @@ _config_install_display() {
     done
 
     # A special rule to avoid breaking DNS in WSL 2.
-    if [[ "${OS_IN_WSL}" == "1" && "${OS_DISTRO}" = "arch" ]]; then
+    if [[ "${OS_IN_WSL}" == "1" && "${OS_DISTRO_LIKE}" = "arch" ]]; then
       [[ "${item}" == *"stub-resolv.conf"* ]] && continue
     fi
   done
@@ -1372,7 +1372,7 @@ install_configs() {
     _config_install_display "Configs (WSL)" "%WindowsUser" "${windows_user}" "${config_install_wsl[@]}"
   fi
 
-  if [ "${OS_DISTRO}" == "arch" ]; then
+  if [ "${OS_DISTRO_LIKE}" == "arch" ]; then
     # It's a bit more complicated to extract this into a variable since it has
     # a condition with a fallback. For now let's keep it hard coded until a
     # better pattern arrises to handle this in a dynamic way.
@@ -1407,7 +1407,7 @@ install_configs() {
 
     [ "${GUI_ENABLED}" == "1" ] && _config_install "${config_install_gui_linux[@]}"
     [ "${OS_IN_WSL}" == "1" ] && _config_install "%WindowsUser" "${windows_user}" "${config_install_wsl[@]}"
-    [ "${OS_DISTRO}" == "arch" ] && _config_install "${config_install_arch[@]}"
+    [ "${OS_DISTRO_LIKE}" == "arch" ] && _config_install "${config_install_arch[@]}"
 
     return 0
   }
@@ -1498,7 +1498,7 @@ will exit here. This gives you a chance to edit the list of packages.
 You can edit 'dotfriedrice-config' to modify the package list(s).
 
 You can find the default list of packages for your OS in:
-less ${DOTFRIEDRICE_PATH}/_install/default/packages/${OS_DISTRO}
+less ${DOTFRIEDRICE_PATH}/_install/default/packages/${OS_DISTRO_LIKE}
 
 EOF
 
@@ -1513,7 +1513,7 @@ EOF
   fi
 
   if [ "${OS_TYPE}" == "linux" ]; then
-    if [ "${OS_DISTRO}" == "arch" ]; then
+    if [ "${OS_DISTRO_LIKE}" == "arch" ]; then
       _install_packages_arch
     elif [ "${OS_DISTRO}" == "debian" ]; then
       _install_packages_debian
