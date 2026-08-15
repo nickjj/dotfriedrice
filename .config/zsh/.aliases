@@ -31,7 +31,7 @@ alias drun='docker container run --rm -it -v "${PWD}":/app -w /app'
 
 alias k="kubectl"
 alias tf="terraform"
-alias ymp3="yt-dlp --embed-metadata --extract-audio --audio-format mp3"
+alias ymp3="youtube-dl --embed-metadata --extract-audio --audio-format mp3"
 
 # A way to define and run tasks in a project. It's like make except it's pure
 # Bash so there's no make limitations like not being able to forward arguments.
