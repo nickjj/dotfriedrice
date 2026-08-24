@@ -21,7 +21,7 @@ placeholder="${configured_tz}"
 #
 # If you're rate limited or it times out, you'll get no assistance which is ok.
 if [ "${flag}" == "--geo" ]; then
-  geo_tz="$(curl --silent --fail --max-time 3 https://ipapi.co/timezone || echo "N/A")"
+  geo_tz="$(curl --silent --fail --max-time 3 https://ipconfig.io/json | jq --raw-output ".time_zone" || echo "N/A")"
   placeholder="${placeholder} (Geo: ${geo_tz})"
 fi
 
