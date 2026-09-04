@@ -1016,7 +1016,7 @@ EOF
 
     # Choose driver based on generation.
     case "${gpu_line}" in
-    *HD\ Graphics* | *Iris* | *Xe*)
+    *HD\ Graphics* | *Iris* | *Xe* | *Arrow\ Lake*)
       PACKAGES_PACMAN+=("intel-media-driver")
       ;;
     *2nd\ Gen* | *3rd\ Gen* | *GMA*)
