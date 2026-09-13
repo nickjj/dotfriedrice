@@ -209,10 +209,12 @@ binds {
     Mod+Alt+Shift+B      hotkey-overlay-title="Browser (private)" { spawn "firefox" "-private-window"; }
     Mod+Alt+Ctrl+Shift+B hotkey-overlay-title="Browser (isolated profile)" { spawn-sh "firefox -P ${BROWSER_ISOLATED_PROFILE:-isolated}"; }
 
-    // Display scaling / zoom.
+    // Display scaling (zoom) and mouse cursor lock.
     Mod+Ctrl+Shift+Equal hotkey-overlay-title="Increase focused monitor scale" { spawn "output-scale" "+"; }
     Mod+Ctrl+Shift+Minus hotkey-overlay-title="Decrease focused monitor scale" { spawn "output-scale" "-"; }
     Mod+Ctrl+Shift+0     hotkey-overlay-title="Reset focused monitor scale" { spawn "output-scale" "1.0"; }
+    Mod+Ctrl+M           hotkey-overlay-title="Toggle output mouse hard lock" { spawn "output-toggle-mouse-lock"; }
+    Mod+Ctrl+Shift+M     hotkey-overlay-title="Toggle output mouse soft lock" { spawn "output-toggle-mouse-lock" "--soft"; }
 
     // Window and column behavior.
     Mod+Q repeat=false hotkey-overlay-title="Close window" { close-window; }

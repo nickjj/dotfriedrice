@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+# Lock your mouse cursor to the focused output / monitor.
+#
+# Usage:
+#   [DEBUG=1] output-toggle-mouse-lock [--soft]
+#
+# Examples:
+#   output-toggle-mouse-lock          # Fully lock your cursor to the focused monitor.
+#   output-toggle-mouse-lock --soft   # Allow crossing over with enough cursor velocity.
+#   DEBUG=1 output-toggle-mouse-lock  # Show raw niri msg output commands.
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+if [ -z "${NIRI_SOCKET}" ]; then
+  echo "This script is only available with the desktop environment, aborting!" >&2
+  exit 1
+fi
+
+STATEFILE="${XDG_RUNTIME_DIR:-/tmp}/output-toggle-mouse-lock.state"
+
+MOUSE_TOGGLE_LOCK_HARD="${MOUSE_TOGGLE_LOCK_HARD:-9999}"
+MOUSE_TOGGLE_LOCK_SOFT="${MOUSE_TOGGLE_LOCK_SOFT:-60}"
+
+MODE="hard"
+[ "${1:-}" == "--soft" ] && MODE="soft"
+
+FOCUSED_OUTPUT="$(niri msg --json focused-output | jq --raw-output '.name')"
+OUTPUTS="$(niri msg --json outputs)"
+
+set_output() {
+  local output="${1}"
+  local x="${2}"
+  local y="${3}"
+
+  # Use -- so negative coordinates are treated as arguments, otherwise niri
+  # will think -60 is a flag.
+  local cmd=(niri msg output "${output}" position set -- "${x}" "${y}")
+
+  [ "${DEBUG:-}" == 1 ] && printf "%s\n" "${cmd[*]}"
+
+  "${cmd[@]}"
+}
+
+save_original() {
+  # Save the original layout and the current lock mode.
+  jq --arg mode "${MODE}" '
+    {
+      mode: $mode,
+      outputs: with_entries(.value |= {
+        x: .logical.x,
+        y: .logical.y
+      })
+    }
+  ' <<<"${OUTPUTS}" >"${STATEFILE}"
+}
+
+restore_original() {
+  local output x y
+
+  jq -r '.outputs | to_entries[] | [.key,.value.x,.value.y] | @tsv' "${STATEFILE}" |
+    while IFS=$'\t' read -r output x y; do
+      set_output "${output}" "${x}" "${y}"
+    done
+}
+
+move_outputs() {
+  local focused_x focused_y
+  local output x y axis saved_x saved_y
+
+  focused_x="$(jq --raw-output --arg focused_output "${FOCUSED_OUTPUT}" '.[$focused_output].logical.x' <<<"${OUTPUTS}")"
+  focused_y="$(jq --raw-output --arg focused_output "${FOCUSED_OUTPUT}" '.[$focused_output].logical.y' <<<"${OUTPUTS}")"
+
+  # Find every output except the focused one and determine which axis separates
+  # it from the focused output so we know whether to adjust its X or Y position.
+  while IFS=$'\t' read -r output x y axis; do
+    # Read the output's original coordinates so every lock operation can
+    # calculate positions from the same saved layout.
+    saved_x="$(jq --raw-output --arg output "${output}" '.outputs[$output].x' "${STATEFILE}")"
+    saved_y="$(jq --raw-output --arg output "${output}" '.outputs[$output].y' "${STATEFILE}")"
+
+    if [ "${MODE}" == "soft" ]; then
+      # Move the output N logical pixels farther away from the focused
+      # output while preserving which side of it the output is on.
+      if [[ "${axis}" == "x" ]]; then
+        if ((saved_x < focused_x)); then
+          x=$((saved_x - MOUSE_TOGGLE_LOCK_SOFT))
+        else
+          x=$((saved_x + MOUSE_TOGGLE_LOCK_SOFT))
+        fi
+      else
+        if ((saved_y < focused_y)); then
+          y=$((saved_y - MOUSE_TOGGLE_LOCK_SOFT))
+        else
+          y=$((saved_y + MOUSE_TOGGLE_LOCK_SOFT))
+        fi
+      fi
+    else
+      # Hard lock sets the output far enough away that the cursor cannot
+      # reach it no matter what your cursor velocity is.
+      if [ "${axis}" == "x" ]; then
+        x="${MOUSE_TOGGLE_LOCK_HARD}"
+      else
+        y="${MOUSE_TOGGLE_LOCK_HARD}"
+      fi
+    fi
+
+    set_output "${output}" "${x}" "${y}"
+
+  done < <(
+    # Build the list of outputs we need to move, excluding the focused output.
+    # For each one, determine whether it sits horizontally or vertically from
+    # the focused output so the lock offset is applied on the correct axis.
+    jq -r --arg focused_output "${FOCUSED_OUTPUT}" '
+      .[$focused_output].logical as $focused |
+      to_entries[] | select(.key != $focused_output) |
+      [
+        .key,
+        .value.logical.x,
+        .value.logical.y,
+        (if .value.logical.x + .value.logical.width <= $focused.x
+          or $focused.x + $focused.width <= .value.logical.x
+         then "x" else "y" end)
+      ] | @tsv
+    ' <<<"${OUTPUTS}"
+  )
+}
+
+# An existing state means the outputs are locked. Matching the current mode
+# unlocks the outputs, while a different mode switches between lock modes.
+if [ -f "${STATEFILE}" ]; then
+  CURRENT_MODE="$(jq --raw-output '.mode' "${STATEFILE}")"
+
+  # If the requested lock mode is already active, restore the original
+  # layout and remove the state file to unlock the outputs.
+  if [ "${MODE}" == "${CURRENT_MODE}" ]; then
+    restore_original
+    rm "${STATEFILE}"
+    notify-send "${FOCUSED_OUTPUT} mouse lock status: Unlocked"
+    exit
+  fi
+
+  # jq can't do an inline replace on the original file.
+  jq --arg mode "${MODE}" '.mode = $mode' "${STATEFILE}" >"${STATEFILE}.tmp"
+  mv "${STATEFILE}.tmp" "${STATEFILE}"
+else
+  save_original
+fi
+
+move_outputs
+notify-send "${FOCUSED_OUTPUT} mouse lock status: ${MODE^} lock"
