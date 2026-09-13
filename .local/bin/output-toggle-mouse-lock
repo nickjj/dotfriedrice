@@ -137,7 +137,7 @@ if [ -f "${STATEFILE}" ]; then
   if [ "${MODE}" == "${CURRENT_MODE}" ]; then
     restore_original
     rm "${STATEFILE}"
-    notify-send "${FOCUSED_OUTPUT} mouse lock status: Unlocked"
+    notify-send "Output ${FOCUSED_OUTPUT} mouse lock: Unlocked"
     exit
   fi
 
@@ -149,4 +149,4 @@ else
 fi
 
 move_outputs
-notify-send "${FOCUSED_OUTPUT} mouse lock status: ${MODE^} lock"
+notify-send "Output ${FOCUSED_OUTPUT} mouse lock: ${MODE^}"
