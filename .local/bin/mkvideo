@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Create a video out of multiple compatible clips without re-encoding it.
+#
+# Usage:
+#   mkvideo INPUT_PATH... OUTPUT_PATH
+#
+# Examples:
+#   mkvideo 1.mp4 2.mp4 3.mp4 combined.mp4
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+if [ "${#}" -lt 2 ]; then
+  echo "Supply at least one input and one output, example: 1.mp4 2.mp4 combined.mp4" >&2
+  exit 1
+fi
+
+# Get all but the last arguments (input) and then the last argument (output).
+inputs=("${@:1:$#-1}")
+output="${!#}"
+
+declare -A seen
+
+# Parse the arguments, it gets piped into ffmpeg as stdin using a format that
+# is compatible with ffmpeg for accepting multiple files as input, such as:
+#   file '1.mp4'
+#   file '2.mp4'
+for path in "${inputs[@]}"; do
+  # Skip files that have been accounted for already.
+  [ -n "${seen["${path}"]+x}" ] && continue
+  seen["${path}"]=1
+
+  # Skip directories.
+  [ -d "${path}" ] && continue
+
+  if [ ! -f "${path}" ]; then
+    echo "Error: '${path}' does not exist or is not a file" >&2
+    exit 1
+  fi
+
+  # The concat demuxer resolves relative paths relative to the input file,
+  # which is /dev/stdin in this case, so use absolute paths with realpath.
+  path="$(realpath "${path}")"
+
+  # Escape apostrophes for the concat demuxer's quoting syntax.
+  path="${path//\'/\'\\\'\'}"
+
+  printf "file '%s'\n" "${path}"
+done | ffmpeg -f concat -safe 0 -i /dev/stdin -c copy "${output}"
