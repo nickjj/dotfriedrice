@@ -126,6 +126,15 @@ window-rule {
 }
 
 window-rule {
+    match app-id=r#"^dev.benz.walker$"#
+    open-floating true
+
+    focus-ring {
+        width 0
+    }
+}
+
+window-rule {
     match app-id=r#"^KeePassXC$"#
 
     block-out-from "screencast"

@@ -1,5 +1,6 @@
 theme = "base"
 additional_theme_location = "./themes/base"
+as_window = true
 
 [keybinds]
 quick_activate = []
