@@ -140,6 +140,14 @@ window-rule {
     block-out-from "screencast"
 }
 
+window-rule {
+    match app-id="dfr.ghostty.notes"
+
+    open-floating true
+    default-column-width { proportion 0.33; }
+    default-window-height { proportion 0.5; }
+}
+
 // ----------------------------------------------------------------------------
 // Key binds
 // ----------------------------------------------------------------------------
