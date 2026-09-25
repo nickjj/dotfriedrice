@@ -126,7 +126,7 @@ window-rule {
 }
 
 window-rule {
-    match app-id=r#"^dev.benz.walker$"#
+    match app-id=r#"^dev\.benz\.walker$"#
     open-floating true
 
     focus-ring {
