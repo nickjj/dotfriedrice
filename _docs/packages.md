@@ -150,6 +150,7 @@ If needed, these get automatically installed for you by DotFriedRice.
 | thunar-archive-plugin | Adds archive operations to Thunar context menus                             |
 | tumbler               | Thumbnail service implementing the thumbnail management D-Bus specification |
 | xarchiver             | GTK frontend to command-line archivers                                      |
+| gvfs-mtp              | Virtual filesystem implementation for GIO - MTP backend (Android, etc.)     |
 
 ## Capture
 
