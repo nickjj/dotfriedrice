@@ -11,6 +11,7 @@
 #   convert img2jpg hello.jpg -resize x480   # Resize to 480 height w/ aspect ratio
 #   convert img2jpg hello.jpg -resize x480!  # Resize to 480 height w/o aspect ratio
 #   convert img2jpg hello.jpg -resize 10%    # Resize to 10% w/ aspect ratio
+#   convert --prompt img2jpg hello.jpg       # Provide custom args through a Walker menu
 
 set -o errexit
 set -o pipefail
@@ -71,7 +72,7 @@ img2png-small() {
 }
 
 help() {
-  printf "%s <command> [args]\n\nCommands:\n" "${0}"
+  printf "%s [--prompt|-p] <command> [args]\n\nCommands:\n" "${0}"
 
   compgen -A function | grep -v "^_" | cat -n
 
@@ -79,6 +80,18 @@ help() {
 }
 
 TIMEFORMAT=$'\nCommand completed in %3lR'
+
+prompt_args=()
+
+# Handle being able to pass in --prompt which lets you interactively add flags
+# through Walker, this comes in handy if you're launching this script through a
+# file manager context menu or hotkey and you want flexibility.
+if [[ "${1:-}" == "-p" || "${1:-}" == "--prompt" ]]; then
+  shift
+  input=$(printf "[Default options]\n" | walker --dmenu --placeholder "${1:-} args...") || exit
+  read -r -a prompt_args <<<"${input}"
+  [ "${prompt_args[0]:-}" == "[Default" ] && prompt_args=()
+fi
 
 command="${1:-help}"
 shift || true
@@ -93,6 +106,8 @@ for arg in "${@}"; do
     args+=("${arg}")
   fi
 done
+
+args+=("${prompt_args[@]}")
 
 time {
   if [ ${#files[@]} -eq 0 ]; then
