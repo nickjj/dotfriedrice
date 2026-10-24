@@ -3,7 +3,8 @@
 # in optional custom args so you can do adhoc conversions.
 #
 #  Examples:
-#   convert img2jpg hello.jpg
+#   convert img2jpg hello.jpg                # Operate on 1 file
+#   convert img2jpg *.png                    # Operate on all PNG files
 #   convert img2jpg hello.jpg -quality 5     # Override the default quality
 #   convert img2jpg hello.jpg -resize 640x   # Resize to 640 width w/ aspect ratio
 #   convert img2jpg hello.jpg -resize 640x!  # Resize to 640 width w/o aspect ratio
@@ -37,7 +38,7 @@ img2jpg() {
 
   shift
 
-  magick "${image}" "${IMG_OPTS_JPG[@]}" "$@" "${image%.*}${OUTPUT_SUFFIX}.jpg"
+  magick "${image}" "${IMG_OPTS_JPG[@]}" "${@}" "${image%.*}${OUTPUT_SUFFIX}.jpg"
 }
 
 img2jpg-small() {
@@ -47,7 +48,7 @@ img2jpg-small() {
   shift
 
   magick "${image}" -resize "${SMALL_MAX_WIDTH}x" "${IMG_OPTS_JPG[@]}" \
-    "$@" "${image%.*}${OUTPUT_SUFFIX}.jpg"
+    "${@}" "${image%.*}${OUTPUT_SUFFIX}.jpg"
 }
 
 img2png() {
@@ -56,7 +57,7 @@ img2png() {
 
   shift
 
-  magick "${image}" "${IMG_OPTS_PNG[@]}" "$@" "${image%.*}${OUTPUT_SUFFIX}.png"
+  magick "${image}" "${IMG_OPTS_PNG[@]}" "${@}" "${image%.*}${OUTPUT_SUFFIX}.png"
 }
 
 img2png-small() {
@@ -66,7 +67,7 @@ img2png-small() {
   shift
 
   magick "${image}" -resize "${SMALL_MAX_WIDTH}x" "${IMG_OPTS_PNG[@]}" \
-    "$@" "${image%.*}${OUTPUT_SUFFIX}.png"
+    "${@}" "${image%.*}${OUTPUT_SUFFIX}.png"
 }
 
 help() {
@@ -78,4 +79,27 @@ help() {
 }
 
 TIMEFORMAT=$'\nCommand completed in %3lR'
-time "${@:-help}"
+
+command="${1:-help}"
+shift || true
+
+files=()
+args=()
+
+for arg in "${@}"; do
+  if [ -f "${arg}" ]; then
+    files+=("${arg}")
+  else
+    args+=("${arg}")
+  fi
+done
+
+time {
+  if [ ${#files[@]} -eq 0 ]; then
+    "${command}" "${args[@]}"
+  else
+    for file in "${files[@]}"; do
+      "${command}" "${file}" "${args[@]}"
+    done
+  fi
+}
