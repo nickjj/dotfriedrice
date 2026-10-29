@@ -76,7 +76,12 @@ help() {
 
   compgen -A function | grep -v "^_" | cat -n
 
-  printf "\nExtended help:\n  Each command has comments for general usage\n"
+  cat <<EOF
+
+Extended help:
+  - Each command has comments for general usage
+  - Run magick --help for specific options you can pass into this script
+EOF
 }
 
 TIMEFORMAT=$'\nCommand completed in %3lR'
