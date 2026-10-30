@@ -1198,6 +1198,7 @@ create_initial_dirs() {
   if [ "${GUI_ENABLED}" == "1" ]; then
     mkdir -p \
       "${XDG_CACHE_HOME}/mpd" \
+      "${XDG_CONFIG_HOME}/Thunar" \
       "${XDG_CONFIG_HOME}/fontconfig" \
       "${XDG_CONFIG_HOME}/gtk-3.0" \
       "${XDG_CONFIG_HOME}/gtk-4.0" \

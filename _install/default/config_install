@@ -26,6 +26,7 @@ export DEFAULT_CONFIG_INSTALL=(
 )
 
 export DEFAULT_CONFIG_INSTALL_GUI_LINUX=(
+  "ln -fns \"\${DOTFRIEDRICE_PATH}/.config/Thunar/uca.xml\" \"\${XDG_CONFIG_HOME}/Thunar/uca.xml\""
   "ln -fns \"\${DOTFRIEDRICE_PATH}/.config/elephant\" \"\${XDG_CONFIG_HOME}/elephant\""
   "ln -fns \"\${DOTFRIEDRICE_PATH}/.config/fontconfig/fonts.conf\" \"\${XDG_CONFIG_HOME}/fontconfig/fonts.conf\""
   "ln -fns \"\${DOTFRIEDRICE_PATH}/.config/mako/config.local\" \"\${XDG_CONFIG_HOME}/mako/config.local\""
