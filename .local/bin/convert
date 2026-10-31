@@ -49,8 +49,7 @@ img2jpg-small() {
 
   shift
 
-  magick "${image}" -resize "${SMALL_MAX_WIDTH}x" "${IMG_OPTS_JPG[@]}" \
-    "${@}" "${image%.*}${OUTPUT_SUFFIX}.jpg"
+  img2jpg "${image}" -resize "${SMALL_MAX_WIDTH}x" "${@}"
 }
 
 img2png() {
@@ -68,8 +67,7 @@ img2png-small() {
 
   shift
 
-  magick "${image}" -resize "${SMALL_MAX_WIDTH}x" "${IMG_OPTS_PNG[@]}" \
-    "${@}" "${image%.*}${OUTPUT_SUFFIX}.png"
+  img2png "${image}" -resize "${SMALL_MAX_WIDTH}x" "${@}"
 }
 
 help() {
