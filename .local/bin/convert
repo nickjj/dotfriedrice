@@ -31,6 +31,7 @@ IMG_OPTS_PNG=(
   -define png:compression-filter=5
   -define png:compression-strategy=1
   -define png:exclude-chunk=all
+  -strip
 )
 
 img2jpg() {
