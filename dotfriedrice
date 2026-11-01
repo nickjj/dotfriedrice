@@ -2395,6 +2395,12 @@ set_theme() {
       # Even after symlinking settings.ini, gsettings still needs to run to
       # switch the active theme so it takes effect.
       gsettings set org.gnome.desktop.interface gtk-theme "${theme}"
+
+      # We also want to set a preference to either dark or light since certain
+      # applications will inherit from this value.
+      local variant
+      variant="$(jq --raw-output ".variant" "${DOTFRIEDRICE_PATH}/_themes/${theme}/_theme.json")"
+      gsettings set org.gnome.desktop.interface color-scheme prefer-"${variant}"
     fi
 
     [ -n "${switch_wallpaper}" ] && "${DOTFRIEDRICE_PATH}/.local/bin/dfr-theme-set-bg"
