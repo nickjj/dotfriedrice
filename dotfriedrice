@@ -2022,11 +2022,11 @@ configure_gui_app_themes() {
 
       firefox_modified="0"
 
-      if ! grep --fixed-strings --quiet 'user_pref("browser.theme.toolbar-theme", 0);' "${firefox_prefs_js}"; then
-        if grep --extended-regexp --quiet 'user_pref\("browser.theme.toolbar-theme", [0-9]+\);' "${firefox_prefs_js}"; then
-          sed -i 's/user_pref("browser.theme.toolbar-theme", [0-9]\+);/user_pref("browser.theme.toolbar-theme", 0);/g' "${firefox_prefs_js}"
+      if ! grep --fixed-strings --quiet 'user_pref("browser.theme.native-theme", true);' "${firefox_prefs_js}"; then
+        if grep --extended-regexp --quiet 'user_pref\("browser.theme.native-theme", (true|false)\);' "${firefox_prefs_js}"; then
+          sed -i 's/user_pref("browser.theme.native-theme", \(true\|false\));/user_pref("browser.theme.native-theme", true);/g' "${firefox_prefs_js}"
         else
-          echo 'user_pref("browser.theme.toolbar-theme", 0);' >>"${firefox_prefs_js}"
+          echo 'user_pref("browser.theme.native-theme", true);' >>"${firefox_prefs_js}"
         fi
         firefox_modified="1"
       fi
