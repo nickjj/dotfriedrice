@@ -176,6 +176,8 @@ binds {
 
     Mod+E hotkey-overlay-title="Cast focused window" { spawn-sh "niri msg action set-dynamic-cast-window --id $(niri msg --json focused-window | jq .id)"; }
 
+    Mod+M repeat=false hotkey-overlay-title="Mirror focused output" { spawn "output-mirror"; }
+
     // Notifications.
     Mod+N            hotkey-overlay-title="Show last notification" { spawn "makoctl" "restore"; }
     Mod+Shift+N      hotkey-overlay-title="Dismiss last notification" { spawn "makoctl" "dismiss"; }
@@ -207,7 +209,7 @@ binds {
     XF86Calculator repeat=false hotkey-overlay-title="Launcher (calculator)" { spawn "walker" "--provider" "calc"; }
 
     // Launcher.
-    Mod+Space  hotkey-overlay-title="Launcher" { spawn "walker"; }
+    Mod+Space               hotkey-overlay-title="Launcher" { spawn "walker"; }
     Mod+W      repeat=false hotkey-overlay-title="Launcher (windows)" { spawn "walker" "--provider" "windows"; }
     Mod+V      repeat=false hotkey-overlay-title="Launcher (clipboard)" { spawn "walker" "--provider" "clipboard"; }
 

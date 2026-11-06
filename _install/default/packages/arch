@@ -102,6 +102,7 @@ export DEFAULT_PACKAGES_PACMAN_GUI=(
   "waybar"
   "wiremix"
   "wireplumber"
+  "wl-mirror"
   "xarchiver"
   "xdg-desktop-portal-gnome"
   "xdg-desktop-portal-gtk"

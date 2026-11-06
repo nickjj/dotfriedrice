@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Mirror the focused output to the output you select.
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+if [ -z "${NIRI_SOCKET:-}" ]; then
+  echo "This script is only available with the desktop environment, aborting!" >&2
+  exit 1
+fi
+
+OUTPUT_FOCUSED="$(niri msg --json focused-output | jq --raw-output .name)"
+
+OUTPUT_SELECTED="$(
+  niri msg --json outputs |
+    jq --raw-output "keys[]" |
+    walker --dmenu --placeholder "Mirror ${OUTPUT_FOCUSED} (focused) to..."
+)"
+
+wl-mirror "${OUTPUT_FOCUSED}" >/dev/null 2>&1 &
+
+[ "${OUTPUT_SELECTED}" == "${OUTPUT_FOCUSED}" ] && exit
+
+sleep 0.2
+niri msg action move-window-to-monitor "${OUTPUT_SELECTED}"
+niri msg action fullscreen-window

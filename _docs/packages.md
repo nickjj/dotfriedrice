@@ -160,6 +160,7 @@ If needed, these get automatically installed for you by DotFriedRice.
 | satty         | Modern screenshot annotation tool inspired by Swappy and Flameshot |
 | slurp         | Select a region in a Wayland compositor                            |
 | hyprpicker    | A wlroots-compatible Wayland color picker that does not suck       |
+| wl-mirror     | A simple Wayland output mirror client                             |
 
 ## Fonts
 
