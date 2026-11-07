@@ -18,6 +18,9 @@ OUTPUT_SELECTED="$(
     walker --dmenu --placeholder "Mirror ${OUTPUT_FOCUSED} (focused) to..."
 )"
 
+[ -n "${OUTPUT_SELECTED}" ] || exit
+killall wl-mirror || true
+
 wl-mirror "${OUTPUT_FOCUSED}" >/dev/null 2>&1 &
 
 notify-send "Output ${OUTPUT_FOCUSED} mirrored to ${OUTPUT_SELECTED}"
