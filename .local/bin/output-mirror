@@ -20,6 +20,8 @@ OUTPUT_SELECTED="$(
 
 wl-mirror "${OUTPUT_FOCUSED}" >/dev/null 2>&1 &
 
+notify-send "Output ${OUTPUT_FOCUSED} mirrored to ${OUTPUT_SELECTED}"
+
 [ "${OUTPUT_SELECTED}" == "${OUTPUT_FOCUSED}" ] && exit
 
 sleep 0.2
