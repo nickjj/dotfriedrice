@@ -30,3 +30,4 @@ notify-send "Output ${OUTPUT_FOCUSED} mirrored to ${OUTPUT_SELECTED}"
 sleep 0.2
 niri msg action move-window-to-monitor "${OUTPUT_SELECTED}"
 niri msg action fullscreen-window
+niri msg action focus-window-previous
