@@ -2400,7 +2400,7 @@ set_theme() {
       # applications will inherit from this value.
       local variant
       variant="$(jq --raw-output ".variant" "${DOTFRIEDRICE_PATH}/_themes/${theme}/_theme.json")"
-      gsettings set org.gnome.desktop.interface color-scheme prefer-"${variant}"
+      gsettings set org.gnome.desktop.interface color-scheme "prefer-${variant}"
     fi
 
     [ -n "${switch_wallpaper}" ] && "${DOTFRIEDRICE_PATH}/.local/bin/dfr-theme-set-bg"
