@@ -8,7 +8,7 @@
 #   output-scale +  # Scale up in 0.25 increments
 #   output-scale -  # Scale down in 0.25 increments
 
-if [ -z "${NIRI_SOCKET}" ]; then
+if [ -z "${NIRI_SOCKET:-}" ]; then
   echo "This script is only available with the desktop environment, aborting!" >&2
   exit 1
 fi

@@ -15,7 +15,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-if [ -z "${NIRI_SOCKET}" ]; then
+if [ -z "${NIRI_SOCKET:-}" ]; then
   echo "This script is only available with the desktop environment, aborting!" >&2
   exit 1
 fi
