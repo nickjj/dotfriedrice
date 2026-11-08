@@ -73,3 +73,9 @@ tooltip * {
   padding: 2px;
   background-color: @tooltip;
 }
+
+#clock.calendar-today { color: @calendar-today; }
+#clock.calendar-days { color: @calendar-days; }
+#clock.calendar-weekdays { color: @calendar-weekdays; }
+#clock.calendar-weeks { color: @calendar-weeks; }
+#clock.calendar-months { color: @calendar-months; }

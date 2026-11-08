@@ -1,2 +1,8 @@
 @define-color foreground #cdd6f4;
 @define-color tooltip #1a1b26;
+
+@define-color calendar-today #ff6699;
+@define-color calendar-days #ecc6d9;
+@define-color calendar-weekdays #ffcc66;
+@define-color calendar-weeks #99ffdd;
+@define-color calendar-months #ffead3;
