@@ -22,7 +22,7 @@ local_ip() {
 }
 
 public_ip() {
-  curl --fail --ipv4 --max-time 3 https://ifconfig.me
+  curl --silent --fail --ipv4 --max-time 3 https://ifconfig.me
 }
 
 case "${flag:-}" in
