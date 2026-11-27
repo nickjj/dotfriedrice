@@ -100,6 +100,7 @@ window-rule {
     match app-id=r#"^gimp$"# title=r#"Preferences"#
     match app-id=r#"^mpv$"#
     match app-id=r#"^soffice$"# title=r#"^Text Import"#
+    match app-id=r#"^com\.gabm\.satty$"#
     match app-id=r#"^thunar$"# title=r#"^Rename "#
     match app-id=r#"^virt-manager$"# title=r#" - Connection Details"#
     match app-id=r#"^wev$"#
@@ -116,13 +117,6 @@ window-rule {
     open-floating true
     default-column-width { proportion 0.33; }
     default-window-height { proportion 0.5; }
-}
-
-window-rule {
-    match app-id=r#"^com\.gabm\.satty$"#
-    open-floating true
-    min-width 730
-    min-height 300
 }
 
 window-rule {
